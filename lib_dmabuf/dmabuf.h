@@ -6,6 +6,10 @@ extern "C" {
 #endif
 
 #if defined(__aarch64__) || defined(__amd64__)
+    #define __64BITS__
+#endif
+
+#ifdef __64BITS__
 	typedef unsigned long phys_addr_t;
 #else
 	typedef unsigned int phys_addr_t;

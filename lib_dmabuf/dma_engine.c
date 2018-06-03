@@ -3,12 +3,43 @@
 #include <sys/mman.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include "dmabuf.h"
 #include "xdma_internals.h"
 
 #define AXI_DMA_REGISTER_LOCATION 0x40400000
 /* #define DESCRIPTOR_REGISTERS_SIZE 0xFFFF */
 #define DESCRIPTOR_REGISTERS_SIZE 92
+
+static const char sg_err_msg[] = "ERROR: DMA engine is set in Scatter/Gather mode; can handle only Direct Register Mode";
+
+void xdma_engine_init(struct dma_engine *engine)
+{
+    volatile struct axi_direct_dma_regs *regs = (volatile struct axi_direct_dma_regs *)engine->vaddr;
+
+    /* reset everything, no interrupt mode */
+    regs->mm2s_control = 0;
+    if ( BIT(regs->mm2s_status, 3) )
+    {
+        printf("%s\n", sg_err_msg);
+        exit(-1);
+    }
+    SET_BITFIELD(regs->mm2s_status, 12, 14, 0);
+#ifndef __64BITS__
+    regs->mm2s_source_addr_high = 0;
+#endif
+
+    regs->s2mm_control = 0;
+    if ( BIT(regs->s2mm_status, 3) )
+    {
+        printf("%s\n", sg_err_msg);
+        exit(-1);
+    }
+    SET_BITFIELD(regs->s2mm_status, 12, 14, 0);
+#ifndef __64BITS__
+    regs->s2mm_dest_addr_high = 0;
+#endif
+}
 
 int get_dma_interfaces(unsigned num_dma, struct dma_engine *engines, unsigned *offsets)
 {
@@ -45,6 +76,7 @@ int get_dma_interfaces(unsigned num_dma, struct dma_engine *engines, unsigned *o
     		close(fd);
     		return -1;
     	}
+        xdma_engine_init(engines + i);
     }
 	return 0;
 }
