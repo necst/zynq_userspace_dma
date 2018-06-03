@@ -1,5 +1,5 @@
 
-headers = $(widlcard *.h)
+headers = $(wildcard *.h)
 dma_sources = $(wildcard dma*.c)
 dma_objects = $(patsubst %.c,%.o,$(dma_sources))
 CFLAGS += -Wall -pedantic

@@ -27,6 +27,10 @@ struct dma_engine {
     char *vaddr;
 };
 
+int get_dma_interfaces(unsigned num_dma, struct dma_engine *engines, unsigned *offsets);
+
+void destroy_dma_interfaces(unsigned num_dma, struct dma_engine *engines);
+
 #ifdef __cplusplus
 }
 #endif
