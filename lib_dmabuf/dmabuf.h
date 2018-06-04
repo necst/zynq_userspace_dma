@@ -35,6 +35,17 @@ int get_dma_interfaces(unsigned num_dma, struct dma_engine *engines, unsigned *o
 
 void destroy_dma_interfaces(unsigned num_dma, struct dma_engine *engines);
 
+void set_simple_transfer_to_device(struct dma_engine *engine, struct udmabuf *buf, 
+    unsigned offset, unsigned length, unsigned channel);
+
+void start_simple_transfer_to_device(struct dma_engine *engine);
+
+void wait_simple_transfer_to_device(struct dma_engine *engine, unsigned usleep_timeout);
+
+void start_simple_transfer_from_device(struct dma_engine *engine);
+
+void wait_simple_transfer_from_device(struct dma_engine *engine, unsigned usleep_timeout);
+
 #ifdef __cplusplus
 }
 #endif

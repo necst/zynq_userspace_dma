@@ -8,6 +8,10 @@
  */
 
 #include <stdint.h>
+#include "dmabuf.h"
+
+#define DEF_ALIGN 64
+/* #define CHECK_ALIGN */
 
 #define BIT(v, offs) ( ((unsigned)((v) >> (offs))) & 1U)
 
@@ -42,5 +46,33 @@ struct axi_direct_dma_regs {
     uint32_t s2mm_reserved[2];
     uint32_t s2mm_length;
 } __attribute__((packed)) ;
+
+inline int engine_to_device_is_idle(struct dma_engine *engine)
+{
+    volatile struct axi_direct_dma_regs *regs =
+        (volatile struct axi_direct_dma_regs *)engine->vaddr;
+    return BIT(regs->mm2s_status, 1) == 1;
+}
+
+inline int engine_to_device_is_halted(struct dma_engine *engine)
+{
+    volatile struct axi_direct_dma_regs *regs =
+        (volatile struct axi_direct_dma_regs *)engine->vaddr;
+    return BIT(regs->mm2s_status, 0) == 1;
+}
+
+inline int engine_from_device_is_idle(struct dma_engine *engine)
+{
+    volatile struct axi_direct_dma_regs *regs =
+        (volatile struct axi_direct_dma_regs *)engine->vaddr;
+    return BIT(regs->s2mm_status, 1) == 1;
+}
+
+inline int engine_from_device_is_halted(struct dma_engine *engine)
+{
+    volatile struct axi_direct_dma_regs *regs =
+        (volatile struct axi_direct_dma_regs *)engine->vaddr;
+    return BIT(regs->s2mm_status, 0) == 1;
+}
 
 #endif /* XDMA_INTERNALS_H_ */

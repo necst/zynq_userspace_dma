@@ -8,8 +8,7 @@
 #include "xdma_internals.h"
 
 #define AXI_DMA_REGISTER_LOCATION 0x40400000
-/* #define DESCRIPTOR_REGISTERS_SIZE 0xFFFF */
-#define DESCRIPTOR_REGISTERS_SIZE 92
+#define DESCRIPTOR_REGISTERS_SIZE 0x10000
 
 static const char sg_err_msg[] = "ERROR: DMA engine is set in Scatter/Gather mode; can handle only Direct Register Mode";
 
@@ -95,8 +94,80 @@ void destroy_dma_interfaces(unsigned num_dma, struct dma_engine *engines)
     }
 }
 
-
-int transfer_to_device(struct dma_engine *engine, struct udmabuf *buf, unsigned length, unsigned channel)
+static void check_transfer_alignment(phys_addr_t addr)
 {
-   return 0;
+#ifdef CHECK_ALIGN
+    if (addr % DEF_ALIGN != 0) {
+        printf("physical address %lx is not aligned to %lx\n", (unsigned long)addr,
+            (unsigned long)DEF_ALIGN);
+#endif
 }
+
+void set_simple_transfer_to_device(struct dma_engine *engine, struct udmabuf *buf, 
+    unsigned offset, unsigned length, unsigned channel)
+{
+    
+    volatile struct axi_direct_dma_regs *regs =
+        (volatile struct axi_direct_dma_regs *)engine->vaddr;
+    check_transfer_alignment(buf->paddr + offset);
+
+    regs->mm2s_source_addr_low = (uint32_t)buf->paddr + offset;
+#ifdef __64BIT__
+    regs->mm2s_source_addr_high = (uint32_t)( (buf->paddr + offset) >> 32);
+#endif
+
+    SET_BITFIELD(regs->mm2s_length, 0, 25, (uint32_t)length);
+}
+
+void set_simple_transfer_from_device(struct dma_engine *engine, struct udmabuf *buf, 
+    unsigned offset, unsigned length, unsigned channel)
+{
+    
+    volatile struct axi_direct_dma_regs *regs =
+        (volatile struct axi_direct_dma_regs *)engine->vaddr;
+    check_transfer_alignment(buf->paddr + offset);
+
+regs->s2mm_dest_addr_low = (uint32_t)buf->paddr + offset;
+#ifdef __64BIT__
+    regs->s2mm_dest_addr_high = (uint32_t)( (buf->paddr + offset) >> 32);
+#endif
+
+    SET_BITFIELD(regs->s2mm_length, 0, 25, (uint32_t)length);
+}
+
+void start_simple_transfer_to_device(struct dma_engine *engine)
+{
+    
+    volatile struct axi_direct_dma_regs *regs =
+        (volatile struct axi_direct_dma_regs *)engine->vaddr;
+    SET_BIT(regs->mm2s_control, 0);
+}
+
+void wait_simple_transfer_to_device(struct dma_engine *engine, unsigned usleep_timeout)
+{
+    while( !engine_to_device_is_idle(engine)
+        /* || !engine_to_device_is_halted(engine) */ ) {
+        if (usleep_timeout != 0) {
+            usleep((useconds_t)usleep_timeout);
+        }
+    }
+}
+
+void start_simple_transfer_from_device(struct dma_engine *engine)
+{
+    
+    volatile struct axi_direct_dma_regs *regs =
+        (volatile struct axi_direct_dma_regs *)engine->vaddr;
+    SET_BIT(regs->s2mm_control, 0);
+}
+
+void wait_simple_transfer_from_device(struct dma_engine *engine, unsigned usleep_timeout)
+{
+    while( !engine_from_device_is_idle(engine)
+        /* || !engine_from_device_is_halted(engine) */ ) {
+        if (usleep_timeout != 0) {
+            usleep((useconds_t)usleep_timeout);
+        }
+    }
+}
+
