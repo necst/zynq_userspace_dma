@@ -103,36 +103,35 @@ static void check_transfer_alignment(phys_addr_t addr)
 #endif
 }
 
+static void set_simple_transfer(volatile uint32_t *reg_addr, struct udmabuf *buf, 
+    unsigned offset, unsigned length)
+{
+    *(reg_addr + 6) = (uint32_t)buf->paddr + offset;
+#ifdef __64BIT__
+    *(reg_addr + 7) = (uint32_t)( (buf->paddr + offset) >> 32);
+#endif
+
+    SET_BITFIELD(*(reg_addr + 10), 0, 25, (uint32_t)length);
+}
+
 void set_simple_transfer_to_device(struct dma_engine *engine, struct udmabuf *buf, 
-    unsigned offset, unsigned length, unsigned channel)
+    unsigned offset, unsigned length)
 {
     
     volatile struct axi_direct_dma_regs *regs =
         (volatile struct axi_direct_dma_regs *)engine->vaddr;
     check_transfer_alignment(buf->paddr + offset);
-
-    regs->mm2s_source_addr_low = (uint32_t)buf->paddr + offset;
-#ifdef __64BIT__
-    regs->mm2s_source_addr_high = (uint32_t)( (buf->paddr + offset) >> 32);
-#endif
-
-    SET_BITFIELD(regs->mm2s_length, 0, 25, (uint32_t)length);
+    set_simple_transfer(&regs->mm2s_control, buf, offset, length);
 }
 
 void set_simple_transfer_from_device(struct dma_engine *engine, struct udmabuf *buf, 
-    unsigned offset, unsigned length, unsigned channel)
+    unsigned offset, unsigned length)
 {
     
     volatile struct axi_direct_dma_regs *regs =
         (volatile struct axi_direct_dma_regs *)engine->vaddr;
     check_transfer_alignment(buf->paddr + offset);
-
-regs->s2mm_dest_addr_low = (uint32_t)buf->paddr + offset;
-#ifdef __64BIT__
-    regs->s2mm_dest_addr_high = (uint32_t)( (buf->paddr + offset) >> 32);
-#endif
-
-    SET_BITFIELD(regs->s2mm_length, 0, 25, (uint32_t)length);
+    set_simple_transfer(&regs->s2mm_control, buf, offset, length);
 }
 
 void start_simple_transfer_to_device(struct dma_engine *engine)
@@ -168,6 +167,52 @@ void wait_simple_transfer_from_device(struct dma_engine *engine, unsigned usleep
         if (usleep_timeout != 0) {
             usleep((useconds_t)usleep_timeout);
         }
+    }
+}
+
+unsigned err_status_to_device(struct dma_engine *engine)
+{
+    volatile struct axi_direct_dma_regs *regs =
+        (volatile struct axi_direct_dma_regs *)engine->vaddr;
+
+    uint32_t value = regs->mm2s_status;
+    SET_BITFIELD(value, 0, 3, 0);
+    SET_BITFIELD(value, 11, 31, 0);
+    UNSET_BIT(value, 7);
+    return value;
+}
+
+unsigned err_status_from_device(struct dma_engine *engine)
+{
+    volatile struct axi_direct_dma_regs *regs =
+        (volatile struct axi_direct_dma_regs *)engine->vaddr;
+
+    uint32_t value = regs->s2mm_status;
+    SET_BITFIELD(value, 0, 3, 0);
+    SET_BITFIELD(value, 11, 31, 0);
+    UNSET_BIT(value, 7);
+    return value;
+}
+
+void print_err_mask(unsigned mask)
+{
+    if ( mask & (1U << 4) ) {
+        printf("DMAIntErr\n");
+    }
+    if ( mask & (1U << 5) ) {
+        printf("DMASlvErr\n");
+    }
+    if ( mask & (1U << 6) ) {
+        printf("DMADecErr\n");
+    }
+    if ( mask & (1U << 8) ) {
+        printf("SGIntErr\n");
+    }
+    if ( mask & (1U << 9) ) {
+        printf("SGSlvErr\n");
+    }
+    if ( mask & (1U << 10) ) {
+        printf("SGDecErr\n");
     }
 }
 

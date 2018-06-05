@@ -1,11 +1,6 @@
-# cd /usr/src/linux-headers-4.9.0-xilinx/
-# sudo make modules_prepare
-# cd ..
-# ls
-# cd linux-headers-4.9.0-custom1-xilinx-dirty/
-# ls
-# sudo make modules_prepare
-# sudo make prepare scripts
+#!/bin/bash
+
+# cd /usr/src/linux-headers-4.9.0-custom1-xilinx-dirty
 # sudo make scripts
 
 cd udmabuf

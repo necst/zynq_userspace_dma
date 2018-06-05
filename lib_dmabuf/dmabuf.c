@@ -29,7 +29,7 @@ static void insert_module(unsigned int num, const unsigned long *sizes)
         retval = run_command("sudo rmmod udmabuf");
         if (retval != 0)
         {
-            printf("cannot unload the module");
+            printf("cannot unload the module\n");
             exit(-1);
         }
     }
@@ -45,7 +45,7 @@ static void insert_module(unsigned int num, const unsigned long *sizes)
     retval = run_command(command_str);
     if (retval != 0)
     {
-        printf("cannot insert module");
+        printf("cannot insert module\n");
         exit(-1);
     }
 }

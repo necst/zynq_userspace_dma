@@ -19,7 +19,7 @@
 
 #define UNSET_BIT(v, offs) ( (v) &= (~(1U << offs)) )
 
-#define BITFIELD(v, start, last) ( ((unsigned)((v) >> (offs))) & ((1U << (last - start + 1)) - 1) )
+#define BITFIELD(v, start, last) ( ((unsigned)((v) >> (start))) & ((1U << (last - start + 1)) - 1) )
 
 #define SET_BITFIELD(v, start, last, new_val) do {                     \
     unsigned __base_mask = ((1U << (last - start + 1)) - 1) << start;  \
@@ -47,28 +47,28 @@ struct axi_direct_dma_regs {
     uint32_t s2mm_length;
 } __attribute__((packed)) ;
 
-inline int engine_to_device_is_idle(struct dma_engine *engine)
+static inline int engine_to_device_is_idle(struct dma_engine *engine)
 {
     volatile struct axi_direct_dma_regs *regs =
         (volatile struct axi_direct_dma_regs *)engine->vaddr;
     return BIT(regs->mm2s_status, 1) == 1;
 }
 
-inline int engine_to_device_is_halted(struct dma_engine *engine)
+static inline int engine_to_device_is_halted(struct dma_engine *engine)
 {
     volatile struct axi_direct_dma_regs *regs =
         (volatile struct axi_direct_dma_regs *)engine->vaddr;
     return BIT(regs->mm2s_status, 0) == 1;
 }
 
-inline int engine_from_device_is_idle(struct dma_engine *engine)
+static inline int engine_from_device_is_idle(struct dma_engine *engine)
 {
     volatile struct axi_direct_dma_regs *regs =
         (volatile struct axi_direct_dma_regs *)engine->vaddr;
     return BIT(regs->s2mm_status, 1) == 1;
 }
 
-inline int engine_from_device_is_halted(struct dma_engine *engine)
+static inline int engine_from_device_is_halted(struct dma_engine *engine)
 {
     volatile struct axi_direct_dma_regs *regs =
         (volatile struct axi_direct_dma_regs *)engine->vaddr;
@@ -76,3 +76,4 @@ inline int engine_from_device_is_halted(struct dma_engine *engine)
 }
 
 #endif /* XDMA_INTERNALS_H_ */
+
