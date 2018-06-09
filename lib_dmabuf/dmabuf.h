@@ -31,7 +31,7 @@ struct dma_engine {
     char *vaddr;
 };
 
-int get_dma_interfaces(unsigned num_dma, struct dma_engine *engines, unsigned *offsets);
+int get_dma_interfaces(unsigned num_dma, unsigned *offsets, struct dma_engine *engines);
 
 void destroy_dma_interfaces(unsigned num_dma, struct dma_engine *engines);
 
@@ -48,6 +48,8 @@ void wait_simple_transfer_to_device(struct dma_engine *engine, unsigned usleep_t
 void start_simple_transfer_from_device(struct dma_engine *engine);
 
 void wait_simple_transfer_from_device(struct dma_engine *engine, unsigned usleep_timeout);
+
+void print_engine( struct dma_engine *engine);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "dmabuf.h"
 
 #define NUM_BUFFERS 2
@@ -15,7 +16,7 @@ static int flash_bitstream(const char *path)
     return retval;
 }
 
-#define BUFSIZE 1024U
+#define BUFSIZE (8U * 4U)
 #define PLUS 1
 
 int main(int argc, char **argv)
@@ -23,12 +24,12 @@ int main(int argc, char **argv)
 	unsigned long sizes[NUM_BUFFERS] = { BUFSIZE, BUFSIZE };
 	struct udmabuf buffers[NUM_BUFFERS];
     struct dma_engine engine;
-    unsigned int i, err;
+    unsigned int i, err = 0;
     int *b1, *b2;
 
 	load_udma_buffers( NUM_BUFFERS, sizes, buffers);
 
-    get_dma_interfaces(1, &engine, NULL);
+    get_dma_interfaces(1, NULL, &engine);
 
     printf("ubuffer 0:\n\tphys addr %lx\n\tvirt mapping %p\n\tlength %lu\n",
         (unsigned long)buffers->paddr, buffers->vaddr, buffers->size);
@@ -38,6 +39,8 @@ int main(int argc, char **argv)
 
     printf("created\n");
 
+    //print_engine(&engine);
+    
     /* init buffers */
     b1 = (int*)buffers->vaddr;
     b2 = (int*)buffers[1].vaddr;
@@ -46,31 +49,43 @@ int main(int argc, char **argv)
         b2[i] = 0;
     }
 
-    /* send data */
+    /**/
+    
+    // collect results
+    set_simple_transfer_from_device(&engine, buffers + 1, 0, BUFSIZE);
+    printf("\nafter configuration\n");
+    //print_engine(&engine);
+    //start_simple_transfer_from_device(&engine);
+
+    // send data
     set_simple_transfer_to_device(&engine, buffers, 0, BUFSIZE);
 
-    start_simple_transfer_to_device(&engine);
+    //start_simple_transfer_to_device(&engine);
 
-    wait_simple_transfer_to_device(&engine, 0);
+    printf("\nafter starting send\n");
+    //print_engine(&engine);
 
-    /* collect results */
-    set_simple_transfer_from_device(&engine, buffers + 1, 0, BUFSIZE);
+    //wait_simple_transfer_to_device(&engine, 0);
 
-    start_simple_transfer_from_device(&engine);
+
+    printf("after starting receive\n");
+    //print_engine(&engine);
 
     wait_simple_transfer_from_device(&engine, 0);
 
-    /* check results */
+    // check results
     for(i = 0; i < BUFSIZE / sizeof(int); i++) {
-        if (b2[i] != b1[i] + PLUS) {
+        if (b2[i] != b1[i]) {
             err = 1;
             printf("ERROR in position %u: %i instead of %i\n", i, b2[i], b1[i]);
         }
     }
 
     if (!err) {
-        printf("no erros found!\n");
+        printf("no errors found!\n");
     }
+    /**/
+    //print_engine(&engine);
     
     destroy_dma_interfaces(1, &engine);
 

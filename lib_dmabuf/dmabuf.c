@@ -109,7 +109,7 @@ static void read_buf_data(unsigned int num, unsigned long size, struct udmabuf *
      */
     sprintf(bufname, "%s%u%s", PHYSPATH, num, PHYSNAME);
     file = fopen(bufname, "r");
-    fscanf(file, "%lu", &parsed_size);
+    fscanf(file, "%lx", &parsed_size);
     fclose(file);
     buffer->paddr = (phys_addr_t)parsed_size;
 }

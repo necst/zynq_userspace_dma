@@ -17,7 +17,9 @@ void xdma_engine_init(struct dma_engine *engine)
     volatile struct axi_direct_dma_regs *regs = (volatile struct axi_direct_dma_regs *)engine->vaddr;
 
     /* reset everything, no interrupt mode */
-    regs->mm2s_control = 0;
+    regs->mm2s_control = 4;
+    while(regs->mm2s_control & 4);
+
     if ( BIT(regs->mm2s_status, 3) )
     {
         printf("%s\n", sg_err_msg);
@@ -28,7 +30,9 @@ void xdma_engine_init(struct dma_engine *engine)
     regs->mm2s_source_addr_high = 0;
 #endif
 
-    regs->s2mm_control = 0;
+    regs->s2mm_control = 4;
+    while(regs->s2mm_control & 4);
+
     if ( BIT(regs->s2mm_status, 3) )
     {
         printf("%s\n", sg_err_msg);
@@ -40,7 +44,7 @@ void xdma_engine_init(struct dma_engine *engine)
 #endif
 }
 
-int get_dma_interfaces(unsigned num_dma, struct dma_engine *engines, unsigned *offsets)
+int get_dma_interfaces(unsigned num_dma, unsigned *offsets, struct dma_engine *engines)
 {
 	char *result;
 	int fd;
@@ -110,6 +114,8 @@ static void set_simple_transfer(volatile uint32_t *reg_addr, struct udmabuf *buf
 #ifdef __64BIT__
     *(reg_addr + 7) = (uint32_t)( (buf->paddr + offset) >> 32);
 #endif
+
+    SET_BIT(*reg_addr, 0);
 
     SET_BITFIELD(*(reg_addr + 10), 0, 25, (uint32_t)length);
 }
@@ -216,3 +222,33 @@ void print_err_mask(unsigned mask)
     }
 }
 
+void print_engine( struct dma_engine *engine)
+{
+    volatile struct axi_direct_dma_regs *regs =
+        (volatile struct axi_direct_dma_regs *)engine->vaddr;
+
+    printf(
+        "regs dump:\n"
+        "mm2s_control %x\n"
+        "mm2s_status %x\n"
+        "mm2s_source_addr_low %x\n"
+        "mm2s_source_addr_high %x\n"
+        "mm2s_length %x\n"
+
+        "s2mm_control %x\n"
+        "s2mm_status %x\n"
+        "s2mm_dest_addr_low %x\n"
+        "s2mm_dest_addr_high %x\n"
+        "s2mm_length %x\n",
+        regs->mm2s_control,
+        regs->mm2s_status,
+        regs->mm2s_source_addr_low,
+        regs->mm2s_source_addr_high,
+        regs->mm2s_length,
+
+        regs->s2mm_control,
+        regs->s2mm_status,
+        regs->s2mm_dest_addr_low,
+        regs->s2mm_dest_addr_high,
+        regs->s2mm_length);
+}
