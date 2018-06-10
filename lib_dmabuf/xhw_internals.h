@@ -32,6 +32,16 @@ extern "C" {
     (v) |= ( (new_val) << start) & __base_mask;                        \
     } while (0)
 
+#define __mem_sw_barrier() do {         \
+        asm volatile ("" ::: "memory"); \
+    } while (0)
+
+#define __mem_full_barrier() __sync_synchronize()
+
+/*
+ * --------- AXI DMA --------- 
+ */
+
 struct axi_direct_dma_regs {
     uint32_t mm2s_control;
     uint32_t mm2s_status;
@@ -50,13 +60,26 @@ struct axi_direct_dma_regs {
     uint32_t s2mm_dest_addr_high;
     uint32_t s2mm_reserved[2];
     uint32_t s2mm_length;
-} __attribute__((packed)) ;
+} __attribute__((packed));
 
-#define __mem_sw_barrier() do {         \
-        asm volatile ("" ::: "memory"); \
-    } while (0)
+#define AXI_DMA_REGISTER_LOCATION 0x40400000
+#define DESCRIPTOR_REGISTERS_SIZE 0x10000
 
-#define __mem_full_barrier() __sync_synchronize()
+/*
+ * --------- AXI CONTROL --------- 
+ */
+
+struct axi_control_base_regs {
+    uint32_t control;
+    uint32_t global_int;
+    uint32_t ip_int;
+    uint32_t ip_int_status;
+} __attribute__((packed));
+
+#define AXI_CONTROL_USER_DATA_OFFS (sizeof(struct axi_control_base_regs))
+
+#define AXI_CONTROL_REGS_BASE_DEF 0x43C00000
+#define AXI_CONTROL_REGS_LEN_DEF 0x10000
 
 #ifdef __cplusplus
 }

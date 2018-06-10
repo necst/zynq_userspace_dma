@@ -46,7 +46,7 @@ static void xdma_engine_init(struct dma_engine *engine)
 
 #define LINUX_MEM_DEV "/dev/mem"
 
-int get_dma_interfaces(unsigned num_dma, unsigned *offsets,
+int get_dma_interfaces(unsigned num_dma, phys_addr_t *offsets,
     unsigned *lengths, struct dma_engine *engines)
 {
 	char *result;
@@ -62,7 +62,7 @@ int get_dma_interfaces(unsigned num_dma, unsigned *offsets,
 	fd = open(LINUX_MEM_DEV, O_RDWR | O_SYNC);
 	if (fd == -1)
 	{
-		printf("impossible to open %s\n", LINUX_MEM_DEV);
+		printf("%s: impossible to open %s\n", __func__, LINUX_MEM_DEV);
 		return -1;
 	}
     
@@ -83,26 +83,27 @@ int get_dma_interfaces(unsigned num_dma, unsigned *offsets,
             __length = lengths[i];
         }
         engines[i].fd = fd;
-    	engines[i].regs_vaddr = result = mmap(NULL, __length,
-    		PROT_READ | PROT_WRITE, MAP_SHARED, fd, __offset);
-    	if ( result == NULL )
-    	{
+        engines[i].regs_vaddr = result = mmap(NULL, __length,
+    	    PROT_READ | PROT_WRITE, MAP_SHARED, fd, __offset);
+        engines[i].length = __length;
+        if ( result == NULL )
+        {
             unsigned j;
-    		printf("impossible to mmap %s\n", LINUX_MEM_DEV);
+    	    printf("%s: impossible to mmap %s\n", __func__, LINUX_MEM_DEV);
             for( j = 0; j < i; j++) {
                 munmap((void*)engines[j].regs_vaddr, DESCRIPTOR_REGISTERS_SIZE);
             }
-    		close(fd);
-    		return -1;
-    	}
+    	    close(fd);
+    	    return -1;
+        }
         xdma_engine_init(engines + i);
     }
-	return 0;
+    return 0;
 }
 
 static void destroy_dma_interface(struct dma_engine *engine)
 {
-    munmap((void*)engine->regs_vaddr, DESCRIPTOR_REGISTERS_SIZE);
+    munmap((void*)engine->regs_vaddr, engine->length);
     close(engine->fd);
 }
 
@@ -263,5 +264,126 @@ unsigned err_status_from_device(struct dma_engine *engine)
         (volatile struct axi_direct_dma_regs *)engine->regs_vaddr;
 
     return err_status_common(&regs->s2mm_status);
+}
+
+static inline int kernel_is_idle(volatile struct axi_control_base_regs *regs)
+{
+    return BIT(regs->control, 2) == 1;
+}
+
+static inline int kernel_is_ready(volatile struct axi_control_base_regs *regs)
+{
+    //return BIT(regs->control, 3) == 1;
+    return BIT(regs->control, 0) == 0;
+}
+
+static inline int kernel_is_done(volatile struct axi_control_base_regs *regs)
+{
+    return BIT(regs->control, 1) == 1;
+}
+
+static int axi_control_init(struct control_interface *intf)
+{
+    volatile struct axi_control_base_regs *regs = 
+        ( volatile struct axi_control_base_regs *)intf->control_regs_vaddr;
+    /*
+     * turn interrupts off
+     */
+    UNSET_BIT(regs->global_int, 0);
+    UNSET_BIT(regs->ip_int, 0);
+    UNSET_BIT(regs->ip_int, 1);
+    UNSET_BIT(regs->global_int, 0);
+    if (BIT(regs->ip_int_status, 0) )
+    {
+        SET_BIT(regs->ip_int_status, 0);
+    }
+    if (BIT(regs->ip_int_status, 1) )
+    {
+        SET_BIT(regs->ip_int_status, 1);
+    }
+    if ( !kernel_is_ready(regs) )
+    {
+        printf("%s: kernel is not ready\n", __func__);
+        return -1;
+    }
+    return 0;
+}
+
+int get_control_interface(phys_addr_t phys_addr, unsigned length,
+    struct control_interface *ctrl_intf)
+{
+    int fd;
+    phys_addr_t __phys_addr = phys_addr;
+    unsigned __length = length;
+    char *result;
+
+	fd = open(LINUX_MEM_DEV, O_RDWR | O_SYNC);
+	if (fd == -1)
+	{
+		printf("%s: impossible to open %s\n", __func__, LINUX_MEM_DEV);
+		return -1;
+	}
+    ctrl_intf->fd = fd;
+
+    if (phys_addr == 0)
+    {
+        __phys_addr = AXI_CONTROL_REGS_BASE_DEF;
+    }
+    if (length == 0)
+    {
+        __length = AXI_CONTROL_REGS_LEN_DEF;
+    }
+    
+    result = mmap(NULL, __length,
+    	PROT_READ | PROT_WRITE, MAP_SHARED, fd, __phys_addr);
+    if ( result == NULL )
+    {
+        printf("%s: impossible to mmap %s\n", __func__, LINUX_MEM_DEV);
+        close(fd);
+        return -1;
+    }
+    ctrl_intf->length = __length;
+    ctrl_intf->control_regs_vaddr = result;
+    ctrl_intf->user_args = (volatile uint32_t *)( result + AXI_CONTROL_USER_DATA_OFFS);
+    return axi_control_init(ctrl_intf);
+}
+
+void destroy_control_interface(struct control_interface *ctrl_intf)
+{
+    munmap((void*)ctrl_intf->control_regs_vaddr, ctrl_intf->length);
+    close(ctrl_intf->fd);
+}
+
+void wait_kernel(struct control_interface *ctrl_intf, unsigned usleep_timeout)
+{
+    volatile struct axi_control_base_regs *regs = 
+        ( volatile struct axi_control_base_regs *)ctrl_intf->control_regs_vaddr;
+    while( !kernel_is_ready(regs) )
+    {
+        if (usleep_timeout != 0)
+        {
+            usleep((useconds_t)usleep_timeout);
+        }
+    }
+}
+
+void set_kernel_argument(struct control_interface *ctrl_intf, unsigned offset,
+    uint32_t value)
+{
+    *(ctrl_intf->user_args + offset) = value;
+}
+
+uint32_t get_kernel_argument(struct control_interface *ctrl_intf, unsigned offset)
+{
+    return *(ctrl_intf->user_args + offset);
+}
+
+void start_kernel(struct control_interface *ctrl_intf)
+{
+    volatile struct axi_control_base_regs *regs = 
+        ( volatile struct axi_control_base_regs *)ctrl_intf->control_regs_vaddr;
+    __mem_full_barrier();
+    SET_BIT(regs->control, 0);
+    __mem_full_barrier();
 }
 
