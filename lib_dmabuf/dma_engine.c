@@ -4,8 +4,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+
 #include "dmabuf.h"
-#include "xdma_internals.h"
+#include "xhw_internals.h"
 
 #define AXI_DMA_REGISTER_LOCATION 0x40400000
 #define DESCRIPTOR_REGISTERS_SIZE 0x10000
@@ -14,9 +15,10 @@ static const char sg_err_msg[] = "ERROR: DMA engine is set in Scatter/Gather mod
 
 void xdma_engine_init(struct dma_engine *engine)
 {
-    volatile struct axi_direct_dma_regs *regs = (volatile struct axi_direct_dma_regs *)engine->vaddr;
+    volatile struct axi_direct_dma_regs *regs = (volatile struct axi_direct_dma_regs *)engine->regs_vaddr;
 
     /* reset everything, no interrupt mode */
+    engine->to_dev.status = NOT_STARTED;
     regs->mm2s_control = 4;
     while(regs->mm2s_control & 4);
 
@@ -30,6 +32,7 @@ void xdma_engine_init(struct dma_engine *engine)
     regs->mm2s_source_addr_high = 0;
 #endif
 
+    engine->from_dev.status = NOT_STARTED;
     regs->s2mm_control = 4;
     while(regs->s2mm_control & 4);
 
@@ -67,14 +70,14 @@ int get_dma_interfaces(unsigned num_dma, unsigned *offsets, struct dma_engine *e
             offs = offsets[i];
         }
         engines[i].fd = fd;
-    	engines[i].vaddr = result = mmap(NULL, DESCRIPTOR_REGISTERS_SIZE,
+    	engines[i].regs_vaddr = result = mmap(NULL, DESCRIPTOR_REGISTERS_SIZE,
     		PROT_READ | PROT_WRITE, MAP_SHARED, fd, AXI_DMA_REGISTER_LOCATION + offs);
     	if ( result == NULL )
     	{
             unsigned j;
     		printf("impossible to mmap /dev/mem\n");
             for( j = 0; j < i; j++) {
-                munmap(engines[j].vaddr, DESCRIPTOR_REGISTERS_SIZE);
+                munmap((void*)engines[j].regs_vaddr, DESCRIPTOR_REGISTERS_SIZE);
             }
     		close(fd);
     		return -1;
@@ -86,7 +89,7 @@ int get_dma_interfaces(unsigned num_dma, unsigned *offsets, struct dma_engine *e
 
 static void destroy_dma_interface(struct dma_engine *engine)
 {
-    munmap(engine->vaddr, DESCRIPTOR_REGISTERS_SIZE);
+    munmap((void*)engine->regs_vaddr, DESCRIPTOR_REGISTERS_SIZE);
     close(engine->fd);
 }
 
@@ -107,79 +110,124 @@ static void check_transfer_alignment(phys_addr_t addr)
 #endif
 }
 
-static void set_simple_transfer(volatile uint32_t *reg_addr, struct udmabuf *buf, 
+static enum dma_err_status set_simple_transfer_common(volatile uint32_t *reg_addr,
+    struct dma_transaction *trans, struct udmabuf *buf, 
     unsigned offset, unsigned length)
 {
-    *(reg_addr + 6) = (uint32_t)buf->paddr + offset;
+    uint32_t low;
 #ifdef __64BIT__
-    *(reg_addr + 7) = (uint32_t)( (buf->paddr + offset) >> 32);
+    uint32_t high = (uint32_t)( (buf->paddr + offset) >> 32 );
 #endif
 
-    SET_BIT(*reg_addr, 0);
+    if ( trans->status == STARTED )
+    {
+        return DMA_TRANS_RUNNING;
+    }
+    low = (uint32_t)(buf->paddr + offset);
+    *(reg_addr + 6) = trans->addr_low = low;
+#ifdef __64BIT__
+    *(reg_addr + 7) = trans->addr_high = high;
+#endif
 
-    SET_BITFIELD(*(reg_addr + 10), 0, 25, (uint32_t)length);
+    trans->length = length;
+    trans->status = PROGRAMMED;
+    return NO_ERROR;
 }
 
-void set_simple_transfer_to_device(struct dma_engine *engine, struct udmabuf *buf, 
+enum dma_err_status set_simple_transfer_to_device(struct dma_engine *engine, struct udmabuf *buf, 
     unsigned offset, unsigned length)
 {
     
     volatile struct axi_direct_dma_regs *regs =
-        (volatile struct axi_direct_dma_regs *)engine->vaddr;
+        (volatile struct axi_direct_dma_regs *)engine->regs_vaddr;
     check_transfer_alignment(buf->paddr + offset);
-    set_simple_transfer(&regs->mm2s_control, buf, offset, length);
+    return set_simple_transfer_common(&regs->mm2s_control, &engine->to_dev, buf, offset, length);
 }
 
-void set_simple_transfer_from_device(struct dma_engine *engine, struct udmabuf *buf, 
+enum dma_err_status set_simple_transfer_from_device(struct dma_engine *engine, struct udmabuf *buf, 
     unsigned offset, unsigned length)
 {
     
     volatile struct axi_direct_dma_regs *regs =
-        (volatile struct axi_direct_dma_regs *)engine->vaddr;
+        (volatile struct axi_direct_dma_regs *)engine->regs_vaddr;
     check_transfer_alignment(buf->paddr + offset);
-    set_simple_transfer(&regs->s2mm_control, buf, offset, length);
+    return set_simple_transfer_common(&regs->s2mm_control, &engine->from_dev, buf, offset, length);
 }
 
-void start_simple_transfer_to_device(struct dma_engine *engine)
+static enum dma_err_status start_simple_transfer_common(volatile uint32_t *regs, struct dma_transaction *trans)
 {
-    
+    if (trans->status == NOT_STARTED)
+    {
+        return DMA_TRANS_NOT_PROGRAMMED;
+    }
+    if (trans->status == STARTED)
+    {
+        return DMA_TRANS_RUNNING;
+    }
+    SET_BIT(*regs, 0);
+
+    SET_BITFIELD(*(regs + 10), 0, 25, (uint32_t)trans->length);
+    trans->status = STARTED;
+    return NO_ERROR;
+}
+
+enum dma_err_status start_simple_transfer_to_device(struct dma_engine *engine)
+{
+    return start_simple_transfer_common((volatile uint32_t *)engine->regs_vaddr, &engine->to_dev);
+}
+
+enum dma_err_status start_simple_transfer_from_device(struct dma_engine *engine)
+{
     volatile struct axi_direct_dma_regs *regs =
-        (volatile struct axi_direct_dma_regs *)engine->vaddr;
-    SET_BIT(regs->mm2s_control, 0);
+        (volatile struct axi_direct_dma_regs *)engine->regs_vaddr;
+    return start_simple_transfer_common(&regs->s2mm_control, &engine->from_dev);
 }
 
-void wait_simple_transfer_to_device(struct dma_engine *engine, unsigned usleep_timeout)
+static inline int engine_is_idle(volatile uint32_t *regs)
 {
-    while( !engine_to_device_is_idle(engine)
-        /* || !engine_to_device_is_halted(engine) */ ) {
+    return BIT(*regs, 0) == 1;
+}
+
+static inline int engine_is_halted(volatile uint32_t *regs)
+{
+    return BIT(*regs, 1) == 1;
+}
+
+static enum dma_err_status wait_simple_transfer_common(volatile uint32_t *regs,
+    struct dma_transaction *trans, unsigned usleep_timeout)
+{
+    if (trans->status != STARTED)
+    {
+        return DMA_TRANS_NOT_STARTED;
+    }
+    while( !engine_is_idle(regs)
+        /* || !engine_is_halted(regs) */ ) {
         if (usleep_timeout != 0) {
             usleep((useconds_t)usleep_timeout);
         }
     }
+    trans->status = PROGRAMMED;
+    return NO_ERROR;
 }
 
-void start_simple_transfer_from_device(struct dma_engine *engine)
+enum dma_err_status wait_simple_transfer_to_device(struct dma_engine *engine, unsigned usleep_timeout)
 {
-    
+    return wait_simple_transfer_common((volatile uint32_t *)engine->regs_vaddr,
+        &engine->to_dev, usleep_timeout);
+}
+
+enum dma_err_status wait_simple_transfer_from_device(struct dma_engine *engine, unsigned usleep_timeout)
+{
     volatile struct axi_direct_dma_regs *regs =
-        (volatile struct axi_direct_dma_regs *)engine->vaddr;
-    SET_BIT(regs->s2mm_control, 0);
-}
-
-void wait_simple_transfer_from_device(struct dma_engine *engine, unsigned usleep_timeout)
-{
-    while( !engine_from_device_is_idle(engine)
-        /* || !engine_from_device_is_halted(engine) */ ) {
-        if (usleep_timeout != 0) {
-            usleep((useconds_t)usleep_timeout);
-        }
-    }
+        (volatile struct axi_direct_dma_regs *)engine->regs_vaddr;
+    return wait_simple_transfer_common(&regs->s2mm_control,
+        &engine->from_dev, usleep_timeout);
 }
 
 unsigned err_status_to_device(struct dma_engine *engine)
 {
     volatile struct axi_direct_dma_regs *regs =
-        (volatile struct axi_direct_dma_regs *)engine->vaddr;
+        (volatile struct axi_direct_dma_regs *)engine->regs_vaddr;
 
     uint32_t value = regs->mm2s_status;
     SET_BITFIELD(value, 0, 3, 0);
@@ -191,7 +239,7 @@ unsigned err_status_to_device(struct dma_engine *engine)
 unsigned err_status_from_device(struct dma_engine *engine)
 {
     volatile struct axi_direct_dma_regs *regs =
-        (volatile struct axi_direct_dma_regs *)engine->vaddr;
+        (volatile struct axi_direct_dma_regs *)engine->regs_vaddr;
 
     uint32_t value = regs->s2mm_status;
     SET_BITFIELD(value, 0, 3, 0);
@@ -225,7 +273,7 @@ void print_err_mask(unsigned mask)
 void print_engine( struct dma_engine *engine)
 {
     volatile struct axi_direct_dma_regs *regs =
-        (volatile struct axi_direct_dma_regs *)engine->vaddr;
+        (volatile struct axi_direct_dma_regs *)engine->regs_vaddr;
 
     printf(
         "regs dump:\n"

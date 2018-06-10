@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#include <stdint.h>
+
 #if defined(__aarch64__) || defined(__amd64__)
     #define __64BITS__
 #endif
@@ -26,28 +28,42 @@ int load_udma_buffers(unsigned int num, const unsigned long *sizes, struct udmab
 
 void unload_udma_buffers(unsigned int num, struct udmabuf *buffers);
 
+enum dma_trans_status { NOT_STARTED, PROGRAMMED, STARTED };
+
+struct dma_transaction {
+    uint32_t addr_low;
+#ifdef __64BITS__
+    uint32_t addr_high;
+#endif
+    uint32_t length;
+    enum dma_trans_status status;
+};
+
 struct dma_engine {
     int fd;
-    char *vaddr;
+    volatile char *regs_vaddr;
+    struct dma_transaction to_dev, from_dev;
 };
+
+enum dma_err_status { NO_ERROR = 0, DMA_TRANS_RUNNING, DMA_TRANS_NOT_PROGRAMMED, DMA_TRANS_NOT_STARTED };
 
 int get_dma_interfaces(unsigned num_dma, unsigned *offsets, struct dma_engine *engines);
 
 void destroy_dma_interfaces(unsigned num_dma, struct dma_engine *engines);
 
-void set_simple_transfer_to_device(struct dma_engine *engine, struct udmabuf *buf, 
+enum dma_err_status set_simple_transfer_to_device(struct dma_engine *engine, struct udmabuf *buf, 
     unsigned offset, unsigned length);
 
-void set_simple_transfer_from_device(struct dma_engine *engine, struct udmabuf *buf, 
+enum dma_err_status set_simple_transfer_from_device(struct dma_engine *engine, struct udmabuf *buf, 
     unsigned offset, unsigned length);
 
-void start_simple_transfer_to_device(struct dma_engine *engine);
+enum dma_err_status start_simple_transfer_to_device(struct dma_engine *engine);
 
-void wait_simple_transfer_to_device(struct dma_engine *engine, unsigned usleep_timeout);
+enum dma_err_status start_simple_transfer_from_device(struct dma_engine *engine);
 
-void start_simple_transfer_from_device(struct dma_engine *engine);
+enum dma_err_status wait_simple_transfer_to_device(struct dma_engine *engine, unsigned usleep_timeout);
 
-void wait_simple_transfer_from_device(struct dma_engine *engine, unsigned usleep_timeout);
+enum dma_err_status wait_simple_transfer_from_device(struct dma_engine *engine, unsigned usleep_timeout);
 
 void print_engine( struct dma_engine *engine);
 

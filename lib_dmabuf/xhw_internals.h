@@ -1,6 +1,6 @@
 
-#ifndef XDMA_INTERNALS_H_
-#define XDMA_INTERNALS_H_
+#ifndef XHW_INTERNALS_H_
+#define XHW_INTERNALS_H_
 
 /*
  * from https://www.xilinx.com/support/documentation/ip_documentation/axi_dma/v7_1/pg021_axi_dma.pdf
@@ -47,33 +47,5 @@ struct axi_direct_dma_regs {
     uint32_t s2mm_length;
 } __attribute__((packed)) ;
 
-static inline int engine_to_device_is_idle(struct dma_engine *engine)
-{
-    volatile struct axi_direct_dma_regs *regs =
-        (volatile struct axi_direct_dma_regs *)engine->vaddr;
-    return BIT(regs->mm2s_status, 1) == 1;
-}
-
-static inline int engine_to_device_is_halted(struct dma_engine *engine)
-{
-    volatile struct axi_direct_dma_regs *regs =
-        (volatile struct axi_direct_dma_regs *)engine->vaddr;
-    return BIT(regs->mm2s_status, 0) == 1;
-}
-
-static inline int engine_from_device_is_idle(struct dma_engine *engine)
-{
-    volatile struct axi_direct_dma_regs *regs =
-        (volatile struct axi_direct_dma_regs *)engine->vaddr;
-    return BIT(regs->s2mm_status, 1) == 1;
-}
-
-static inline int engine_from_device_is_halted(struct dma_engine *engine)
-{
-    volatile struct axi_direct_dma_regs *regs =
-        (volatile struct axi_direct_dma_regs *)engine->vaddr;
-    return BIT(regs->s2mm_status, 0) == 1;
-}
-
-#endif /* XDMA_INTERNALS_H_ */
+#endif /* XHw_INTERNALS_H_ */
 

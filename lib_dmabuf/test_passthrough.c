@@ -16,8 +16,24 @@ static int flash_bitstream(const char *path)
     return retval;
 }
 
-#define BUFSIZE (8U * 4U)
+#define BUFSIZE (1024U * 4U)
 #define PLUS 1
+
+static void check_err(enum dma_err_status err)
+{
+    if ( err != NO_ERROR )
+    {
+        printf("******************************\n"
+               "ERROR: error code is %d\n"
+               "******************************\n", (int)err);
+    }
+}
+
+void print_buffer_status(int buf_id, struct udmabuf *buf)
+{
+    printf("ubuffer %d:\n\tphys addr %lx\n\tvirt mapping %p\n\tlength %lu\n",
+        buf_id, (unsigned long)buf->paddr, buf->vaddr, buf->size);
+}
 
 int main(int argc, char **argv)
 {
@@ -26,21 +42,19 @@ int main(int argc, char **argv)
     struct dma_engine engine;
     unsigned int i, err = 0;
     int *b1, *b2;
+    enum dma_err_status err_retval;
 
 	load_udma_buffers( NUM_BUFFERS, sizes, buffers);
 
+    printf("DMA buffers created\n");
+
+    print_buffer_status(0, buffers);
+    print_buffer_status(1, buffers + 1);
+
     get_dma_interfaces(1, NULL, &engine);
 
-    printf("ubuffer 0:\n\tphys addr %lx\n\tvirt mapping %p\n\tlength %lu\n",
-        (unsigned long)buffers->paddr, buffers->vaddr, buffers->size);
+    printf("DMA engine created\n");
 
-    printf("ubuffer 1:\n\tphys addr %lx\n\tvirt mapping %p\n\tlength %lu\n",
-        (unsigned long)buffers[1].paddr, buffers[1].vaddr, buffers[1].size);
-
-    printf("created\n");
-
-    //print_engine(&engine);
-    
     /* init buffers */
     b1 = (int*)buffers->vaddr;
     b2 = (int*)buffers[1].vaddr;
@@ -49,31 +63,40 @@ int main(int argc, char **argv)
         b2[i] = 0;
     }
 
-    /**/
-    
-    // collect results
-    set_simple_transfer_from_device(&engine, buffers + 1, 0, BUFSIZE);
-    printf("\nafter configuration\n");
-    //print_engine(&engine);
-    //start_simple_transfer_from_device(&engine);
+    /*
+     * initiate DMA transaction from device
+     */
+    printf("\nstarting transfer from device...\n");
+    err_retval = set_simple_transfer_from_device(&engine, buffers + 1, 0, BUFSIZE);
+    check_err(err_retval);
+    err_retval = start_simple_transfer_from_device(&engine);
+    check_err(err_retval);
+    printf("transfer from device started\n");
 
-    // send data
-    set_simple_transfer_to_device(&engine, buffers, 0, BUFSIZE);
+    /*
+     * initiate DMA transaction to device
+     */
+    printf("\nstarting transfer to device...\n");
+    err_retval = set_simple_transfer_to_device(&engine, buffers, 0, BUFSIZE);
+    check_err(err_retval);
+    err_retval = start_simple_transfer_to_device(&engine);
+    check_err(err_retval);
+    printf("transfer to device started\n");
 
-    //start_simple_transfer_to_device(&engine);
+    /*
+     * wait for transactions to and from device
+     */
+    printf("\nwaiting for transfer to device...\n");
+    err_retval = wait_simple_transfer_to_device(&engine, 0);
+    check_err(err_retval);
 
-    printf("\nafter starting send\n");
-    //print_engine(&engine);
+    printf("\nwaiting for transfer from device...\n");
+    err_retval = wait_simple_transfer_from_device(&engine, 0);
+    check_err(err_retval);
 
-    //wait_simple_transfer_to_device(&engine, 0);
-
-
-    printf("after starting receive\n");
-    //print_engine(&engine);
-
-    wait_simple_transfer_from_device(&engine, 0);
-
-    // check results
+    /*
+     * check results
+     */
     for(i = 0; i < BUFSIZE / sizeof(int); i++) {
         if (b2[i] != b1[i]) {
             err = 1;
@@ -82,15 +105,12 @@ int main(int argc, char **argv)
     }
 
     if (!err) {
-        printf("no errors found!\n");
+        printf("no errors found\n");
     }
-    /**/
-    //print_engine(&engine);
-    
+
     destroy_dma_interfaces(1, &engine);
 
-    printf("destroyed\n");
-
 	unload_udma_buffers( NUM_BUFFERS, buffers);
-	return 0;
+
+	return err;
 }
