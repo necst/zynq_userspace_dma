@@ -354,19 +354,6 @@ void destroy_control_interface(struct control_interface *ctrl_intf)
     close(ctrl_intf->fd);
 }
 
-void wait_kernel(struct control_interface *ctrl_intf, unsigned usleep_timeout)
-{
-    volatile struct axi_control_base_regs *regs = 
-        ( volatile struct axi_control_base_regs *)ctrl_intf->control_regs_vaddr;
-    while( !kernel_is_ready(regs) )
-    {
-        if (usleep_timeout != 0)
-        {
-            usleep((useconds_t)usleep_timeout);
-        }
-    }
-}
-
 void set_kernel_argument(struct control_interface *ctrl_intf, unsigned offset,
     uint32_t value)
 {
@@ -385,5 +372,18 @@ void start_kernel(struct control_interface *ctrl_intf)
     __mem_full_barrier();
     SET_BIT(regs->control, 0);
     __mem_full_barrier();
+}
+
+void wait_kernel(struct control_interface *ctrl_intf, unsigned usleep_timeout)
+{
+    volatile struct axi_control_base_regs *regs = 
+        ( volatile struct axi_control_base_regs *)ctrl_intf->control_regs_vaddr;
+    while( !kernel_is_ready(regs) )
+    {
+        if (usleep_timeout != 0)
+        {
+            usleep((useconds_t)usleep_timeout);
+        }
+    }
 }
 

@@ -90,14 +90,14 @@ int get_control_interface(phys_addr_t phys_addr, unsigned length, struct control
 
 void destroy_control_interface(struct control_interface *ctrl_intf);
 
-void wait_kernel(struct control_interface *ctrl_intf, unsigned usleep_timeout);
-
 void set_kernel_argument(struct control_interface *ctrl_intf, unsigned offset,
     uint32_t value);
 
 uint32_t get_kernel_argument(struct control_interface *ctrl_intf, unsigned offset);
 
 void start_kernel(struct control_interface *ctrl_intf);
+
+void wait_kernel(struct control_interface *ctrl_intf, unsigned usleep_timeout);
 
 #ifdef __cplusplus
 }
