@@ -7,8 +7,13 @@
  * pag 12
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
-#include "dmabuf.h"
+
+#include "dma_engine_buf.h"
 
 #define DEF_ALIGN 64
 /* #define CHECK_ALIGN */
@@ -47,5 +52,9 @@ struct axi_direct_dma_regs {
     uint32_t s2mm_length;
 } __attribute__((packed)) ;
 
-#endif /* XHw_INTERNALS_H_ */
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* XHW_INTERNALS_H_ */
 

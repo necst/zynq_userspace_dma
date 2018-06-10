@@ -1,4 +1,3 @@
-#include "dmabuf.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,6 +6,8 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
+
+#include "dma_engine_buf.h"
 
 static char param_string[ 145 ];
 

@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#include "dmabuf.h"
+#include "dma_engine_buf.h"
 #include "xhw_internals.h"
 
 #define AXI_DMA_REGISTER_LOCATION 0x40400000

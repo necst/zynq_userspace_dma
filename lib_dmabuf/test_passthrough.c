@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "dmabuf.h"
+
+#include "dma_engine_buf.h"
 
 #define NUM_BUFFERS 2
 

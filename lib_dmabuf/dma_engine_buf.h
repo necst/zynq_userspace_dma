@@ -1,5 +1,5 @@
-#ifndef DMABUF_H_
-#define DMABUF_H_
+#ifndef DMA_ENGINE_BUF_H_
+#define DMA_ENGINE_BUF_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,4 +71,4 @@ void print_engine( struct dma_engine *engine);
 }
 #endif
 
-#endif /* DMABUF_H_ */
+#endif /* DMA_ENGINE_BUF_H_ */
