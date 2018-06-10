@@ -52,6 +52,12 @@ struct axi_direct_dma_regs {
     uint32_t s2mm_length;
 } __attribute__((packed)) ;
 
+#define __mem_sw_barrier() do {         \
+        asm volatile ("" ::: "memory"); \
+    } while (0)
+
+#define __mem_full_barrier() __sync_synchronize()
+
 #ifdef __cplusplus
 }
 #endif

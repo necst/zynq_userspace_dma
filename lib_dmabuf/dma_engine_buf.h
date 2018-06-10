@@ -47,7 +47,11 @@ struct dma_engine {
 
 enum dma_err_status { NO_ERROR = 0, DMA_TRANS_RUNNING, DMA_TRANS_NOT_PROGRAMMED, DMA_TRANS_NOT_STARTED };
 
-int get_dma_interfaces(unsigned num_dma, unsigned *offsets, struct dma_engine *engines);
+#define AXI_DMA_REGISTER_LOCATION 0x40400000
+#define DESCRIPTOR_REGISTERS_SIZE 0x10000
+
+int get_dma_interfaces(unsigned num_dma, unsigned *offsets,
+    unsigned *lengths, struct dma_engine *engines);
 
 void destroy_dma_interfaces(unsigned num_dma, struct dma_engine *engines);
 
@@ -64,8 +68,6 @@ enum dma_err_status start_simple_transfer_from_device(struct dma_engine *engine)
 enum dma_err_status wait_simple_transfer_to_device(struct dma_engine *engine, unsigned usleep_timeout);
 
 enum dma_err_status wait_simple_transfer_from_device(struct dma_engine *engine, unsigned usleep_timeout);
-
-void print_engine( struct dma_engine *engine);
 
 #ifdef __cplusplus
 }

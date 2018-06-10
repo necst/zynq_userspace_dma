@@ -3,38 +3,13 @@
 #include <unistd.h>
 
 #include "dma_engine_buf.h"
+#include "xhw_internals.h"
+#include "utils.h"
 
 #define NUM_BUFFERS 2
 
-static int flash_bitstream(const char *path)
-{
-    int retval;
-    char *command = malloc( 2048 * sizeof(char) );
-    sprintf(command, "cat %s > /dev/xdevcfg\n", path);
-    retval = system(command);
-
-    free(command);
-    return retval;
-}
-
 #define BUFSIZE (1024U * 4U)
 #define PLUS 1
-
-static void check_err(enum dma_err_status err)
-{
-    if ( err != NO_ERROR )
-    {
-        printf("******************************\n"
-               "ERROR: error code is %d\n"
-               "******************************\n", (int)err);
-    }
-}
-
-void print_buffer_status(int buf_id, struct udmabuf *buf)
-{
-    printf("ubuffer %d:\n\tphys addr %lx\n\tvirt mapping %p\n\tlength %lu\n",
-        buf_id, (unsigned long)buf->paddr, buf->vaddr, buf->size);
-}
 
 int main(int argc, char **argv)
 {
@@ -52,7 +27,7 @@ int main(int argc, char **argv)
     print_buffer_status(0, buffers);
     print_buffer_status(1, buffers + 1);
 
-    get_dma_interfaces(1, NULL, &engine);
+    get_dma_interfaces(1, NULL, NULL, &engine);
 
     printf("DMA engine created\n");
 
