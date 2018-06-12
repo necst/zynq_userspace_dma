@@ -58,10 +58,10 @@ int main(int argc, char **argv)
      * set kernel arguments
      */
     printf("setting kernel arguments\n");
-    set_kernel_argument(&vec_sum, 0, NUM_VALUES);
-    set_kernel_argument(&vec_sum, 1, A);
-    set_kernel_argument(&vec_sum, 2, B);
-    set_kernel_argument(&vec_sum, 3, C);
+    set_kernel_argument_uint(&vec_sum, 0, NUM_VALUES);
+    set_kernel_argument_uint(&vec_sum, 1, A);
+    set_kernel_argument_uint(&vec_sum, 2, B);
+    set_kernel_argument_uint(&vec_sum, 3, C);
 
     /*
      * initiate DMA transaction from device

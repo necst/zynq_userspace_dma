@@ -344,7 +344,7 @@ int get_control_interface(phys_addr_t phys_addr, unsigned length,
     }
     ctrl_intf->length = __length;
     ctrl_intf->control_regs_vaddr = result;
-    ctrl_intf->user_args = (volatile uint32_t *)( result + AXI_CONTROL_USER_DATA_OFFS);
+    ctrl_intf->user_args = (volatile char *)( result + AXI_CONTROL_USER_DATA_OFFS);
     return axi_control_init(ctrl_intf);
 }
 
@@ -352,17 +352,6 @@ void destroy_control_interface(struct control_interface *ctrl_intf)
 {
     munmap((void*)ctrl_intf->control_regs_vaddr, ctrl_intf->length);
     close(ctrl_intf->fd);
-}
-
-void set_kernel_argument(struct control_interface *ctrl_intf, unsigned offset,
-    uint32_t value)
-{
-    *(ctrl_intf->user_args + offset * 2) = value;
-}
-
-uint32_t get_kernel_argument(struct control_interface *ctrl_intf, unsigned offset)
-{
-    return *(ctrl_intf->user_args + offset * 2);
 }
 
 void start_kernel(struct control_interface *ctrl_intf)

@@ -1,3 +1,4 @@
+
 #ifndef DMA_ENGINE_BUF_H_
 #define DMA_ENGINE_BUF_H_
 
@@ -83,17 +84,54 @@ struct control_interface {
     int fd;
     unsigned length;
     volatile char *control_regs_vaddr;
-    volatile uint32_t *user_args;
+    volatile char *user_args;
 };
 
 int get_control_interface(phys_addr_t phys_addr, unsigned length, struct control_interface *ctrl_intf);
 
 void destroy_control_interface(struct control_interface *ctrl_intf);
 
-void set_kernel_argument(struct control_interface *ctrl_intf, unsigned offset,
-    uint32_t value);
+#define SET_KERNEL_ARG_UNSAFE(intf, offset, value) do {         \
+    volatile typeof(value) *__ptr = (volatile typeof(value) *)  \
+        ((intf)->user_args + sizeof(uint64_t) * (offset));      \
+    *__ptr = value;                                             \
+    } while(0)
 
-uint32_t get_kernel_argument(struct control_interface *ctrl_intf, unsigned offset);
+#define GET_KERNEL_ARG_UNSAFE(intf, offset, type) *((volatile type *)  \
+        ((intf)->user_args + sizeof(uint64_t) * (offset)))
+
+static inline void set_kernel_argument_uint(struct control_interface *ctrl_intf, unsigned offset,
+    uint32_t value)
+{
+    SET_KERNEL_ARG_UNSAFE(ctrl_intf, offset, value);
+}
+
+static inline uint32_t get_kernel_argument_uint(struct control_interface *ctrl_intf, unsigned offset)
+{
+    return GET_KERNEL_ARG_UNSAFE(ctrl_intf, offset, uint32_t);
+}
+
+static inline void set_kernel_argument_ulong(struct control_interface *ctrl_intf, unsigned offset,
+    uint64_t value)
+{
+    SET_KERNEL_ARG_UNSAFE(ctrl_intf, offset, value);
+}
+
+static inline uint64_t get_kernel_argument_ulong(struct control_interface *ctrl_intf, unsigned offset)
+{
+    return GET_KERNEL_ARG_UNSAFE(ctrl_intf, offset, uint64_t);
+}
+
+static inline void set_kernel_argument_char(struct control_interface *ctrl_intf, unsigned offset,
+    char value)
+{
+    SET_KERNEL_ARG_UNSAFE(ctrl_intf, offset, value);
+}
+
+static inline char get_kernel_argument_char(struct control_interface *ctrl_intf, unsigned offset)
+{
+    return GET_KERNEL_ARG_UNSAFE(ctrl_intf, offset, char);
+}
 
 void start_kernel(struct control_interface *ctrl_intf);
 
