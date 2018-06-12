@@ -52,12 +52,14 @@ int main(int argc, char **argv)
     /*
      * initiate DMA transaction to device
      */
+    print_engine(&engine);
     printf("\nstarting transfer to device...\n");
     err_retval = set_simple_transfer_to_device(&engine, buffers, 0, BUFSIZE);
     check_err(err_retval);
     err_retval = start_simple_transfer_to_device(&engine);
     check_err(err_retval);
     printf("transfer to device started\n");
+    print_engine(&engine);
 
     /*
      * wait for transactions to and from device
@@ -69,6 +71,7 @@ int main(int argc, char **argv)
     printf("\nwaiting for transfer from device...\n");
     err_retval = wait_simple_transfer_from_device(&engine, 0);
     check_err(err_retval);
+    print_engine(&engine);
 
     /*
      * check results

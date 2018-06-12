@@ -357,12 +357,12 @@ void destroy_control_interface(struct control_interface *ctrl_intf)
 void set_kernel_argument(struct control_interface *ctrl_intf, unsigned offset,
     uint32_t value)
 {
-    *(ctrl_intf->user_args + offset) = value;
+    *(ctrl_intf->user_args + offset * 2) = value;
 }
 
 uint32_t get_kernel_argument(struct control_interface *ctrl_intf, unsigned offset)
 {
-    return *(ctrl_intf->user_args + offset);
+    return *(ctrl_intf->user_args + offset * 2);
 }
 
 void start_kernel(struct control_interface *ctrl_intf)

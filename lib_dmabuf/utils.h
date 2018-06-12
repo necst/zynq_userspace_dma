@@ -18,6 +18,8 @@ void print_err_mask(unsigned mask);
 
 void print_buffer_status(int buf_id, struct udmabuf *buf);
 
+void print_kernel_status(struct control_interface *ctrl_intf);
+
 #ifdef __cplusplus
 }
 #endif

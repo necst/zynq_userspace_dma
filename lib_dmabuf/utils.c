@@ -31,17 +31,17 @@ void print_engine( struct dma_engine *engine)
 
     printf(
         "regs dump:\n"
-        "mm2s_control %x\n"
-        "mm2s_status %x\n"
-        "mm2s_source_addr_low %x\n"
-        "mm2s_source_addr_high %x\n"
-        "mm2s_length %x\n"
+        "\tmm2s_control %x\n"
+        "\tmm2s_status %x\n"
+        "\tmm2s_source_addr_low %x\n"
+        "\tmm2s_source_addr_high %x\n"
+        "\tmm2s_length %x\n"
 
-        "s2mm_control %x\n"
-        "s2mm_status %x\n"
-        "s2mm_dest_addr_low %x\n"
-        "s2mm_dest_addr_high %x\n"
-        "s2mm_length %x\n",
+        "\ts2mm_control %x\n"
+        "\ts2mm_status %x\n"
+        "\ts2mm_dest_addr_low %x\n"
+        "\ts2mm_dest_addr_high %x\n"
+        "\ts2mm_length %x\n",
         regs->mm2s_control,
         regs->mm2s_status,
         regs->mm2s_source_addr_low,
@@ -81,5 +81,15 @@ void print_buffer_status(int buf_id, struct udmabuf *buf)
 {
     printf("ubuffer %d:\n\tphys addr %lx\n\tvirt mapping %p\n\tlength %lu\n",
         buf_id, (unsigned long)buf->paddr, buf->vaddr, buf->size);
+}
+
+
+void print_kernel_status(struct control_interface *ctrl_intf)
+{
+    volatile struct axi_control_base_regs *regs = 
+        ( volatile struct axi_control_base_regs *)ctrl_intf->control_regs_vaddr;
+    printf("\nKernel status:\n\tcontrol %x\n\tglobal interrupt %x\n\t"
+        "IP interrupt %x\n\tIP interrupt status %x\n",
+        regs->control, regs->global_int, regs->ip_int, regs->ip_int_status);
 }
 
