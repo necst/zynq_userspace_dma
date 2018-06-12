@@ -53,7 +53,7 @@ int get_dma_interfaces(unsigned num_dma, phys_addr_t *offsets,
 	int fd;
     unsigned i;
 
-    if (i == 0 && offsets == NULL)
+    if (offsets == NULL)
     {
         printf("function %s requires offsets to be given\n", __func__);
         exit(-1);

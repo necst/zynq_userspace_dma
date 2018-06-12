@@ -11,15 +11,19 @@ test_targets = $(patsubst %.c,%,$(test_sources))
 utils_sources = $(wildcard utils*.c)
 utils_objects = $(patsubst %.c,%.o,$(utils_sources))
 
-CFLAG += -Wall -Wextra -pedantic -std=gnu89
+CFLAGS += -Wall -Wextra -pedantic -std=gnu99
+LDFLAGS =
 
 dma_name = dmabuf
 dma_static_lib = lib$(dma_name).a
+dma_dynamic_lib = lib$(dma_name).so
 
 utils_name = utils
 utils_lib = lib$(utils_name).a
 
-.PHONY: clean static
+.PHONY: clean all static dynamic
+
+all: static
 
 %.o: %.c $(headers)
 	$(CC) -c $< $(CFLAGS)
@@ -27,7 +31,14 @@ utils_lib = lib$(utils_name).a
 $(dma_static_lib): $(dma_objects)
 	$(AR) rcs $@ $^
 
-static: $(static_lib)
+static: $(dma_static_lib)
+
+$(dma_dynamic_lib): CFLAGS += -fPIC
+$(dma_dynamic_lib): $(dma_objects)
+	$(CC) $(LDFLAGS) -shared $^ -o $@
+	@echo "run application with LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:"$(shell pwd)
+
+dynamic: $(dma_dynamic_lib)
 
 $(utils_lib): $(utils_objects)
 	$(AR) rcs $@ $^
@@ -39,5 +50,5 @@ clean:
 	@rm -rf *.o 2> /dev/null
 
 distclean: clean
-	@rm -rf $(test_targets) *.a 2> /dev/null
+	@rm -rf $(test_targets) $(dma_static_lib) $(dma_dynamic_lib) 2> /dev/null
 
