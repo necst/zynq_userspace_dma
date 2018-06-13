@@ -11,7 +11,7 @@
 #define BUFSIZE (1024U * 4U)
 #define PLUS 1
 
-int main(int argc, char **argv)
+int main(__unused__ int argc, __unused__ char **argv)
 {
     unsigned long sizes[NUM_BUFFERS] = { BUFSIZE, BUFSIZE };
     struct udmabuf buffers[NUM_BUFFERS];

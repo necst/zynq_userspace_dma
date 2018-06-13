@@ -11,6 +11,12 @@
 
 #include "dma_engine_buf.h"
 
+#if defined(__GNUC__)
+#define __unused__ __attribute__((unused))
+#else
+#define __unused__
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
