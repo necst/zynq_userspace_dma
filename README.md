@@ -61,7 +61,7 @@ make test_passthrough
 cd ..
 ```
 
-then flash the bistream (the provided bitstreams are for PYNQ platform only!); here, we use the `/dev/xdevcfg` device to flash, which needs root permission
+then flash the bitstream (the provided bitstreams are for PYNQ platform only!); here, we use the `/dev/xdevcfg` device to flash, which needs root permission
 
 ```bash
 sudo su
@@ -123,7 +123,7 @@ More authors are welcome!
 
 ## License
 
-This project is licensed under the Apache V2 License - see the [LICENSE.md](LICENSE) file for details
+This project is licensed under the Apache V2 License - see the [LICENSE](LICENSE) file for details
 
 [comment]: # (## Acknowledgments)
 
