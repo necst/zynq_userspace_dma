@@ -255,10 +255,10 @@ int get_control_interface(phys_addr_t phys_addr, unsigned length, struct control
  */
 void destroy_control_interface(struct control_interface *ctrl_intf);
 
-#define SET_KERNEL_ARG_UNSAFE(intf, offset, value) do {         \
-    volatile typeof(value) *__ptr = (volatile typeof(value) *)  \
-        ((intf)->user_args + sizeof(uint64_t) * (offset));      \
-    *__ptr = value;                                             \
+#define SET_KERNEL_ARG_UNSAFE(intf, offset, value, dest_type) do {         		\
+    volatile dest_type *__ptr = (volatile dest_type *)			\
+        ((volatile char *)((intf)->user_args) + sizeof(uint64_t) * (offset));	\
+    *__ptr = value;                                             				\
     } while(0)
 
 #define GET_KERNEL_ARG_UNSAFE(intf, offset, type) *((volatile type *)  \
@@ -271,9 +271,14 @@ void destroy_control_interface(struct control_interface *ctrl_intf);
 static inline void set_kernel_argument_uint(struct control_interface *ctrl_intf, unsigned offset,
     uint32_t value)
 {
-    SET_KERNEL_ARG_UNSAFE(ctrl_intf, offset, value);
+    SET_KERNEL_ARG_UNSAFE(ctrl_intf, offset, value, uint32_t);
 }
 
+/**
+ * @brief get_kernel_argument_uint reads the 32 bits kernel arguments from offset @p offset
+ * of @p ctrl_intf control interface
+ * @return  the value read from kernel's argument register
+ */
 static inline uint32_t get_kernel_argument_uint(struct control_interface *ctrl_intf, unsigned offset)
 {
     return GET_KERNEL_ARG_UNSAFE(ctrl_intf, offset, uint32_t);
@@ -286,7 +291,7 @@ static inline uint32_t get_kernel_argument_uint(struct control_interface *ctrl_i
 static inline void set_kernel_argument_ulong(struct control_interface *ctrl_intf, unsigned offset,
     uint64_t value)
 {
-    SET_KERNEL_ARG_UNSAFE(ctrl_intf, offset, value);
+    SET_KERNEL_ARG_UNSAFE(ctrl_intf, offset, value, uint64_t);
 }
 
 /**
@@ -306,7 +311,7 @@ static inline uint64_t get_kernel_argument_ulong(struct control_interface *ctrl_
 static inline void set_kernel_argument_char(struct control_interface *ctrl_intf, unsigned offset,
     char value)
 {
-    SET_KERNEL_ARG_UNSAFE(ctrl_intf, offset, value);
+    SET_KERNEL_ARG_UNSAFE(ctrl_intf, offset, value, char);
 }
 
 /**

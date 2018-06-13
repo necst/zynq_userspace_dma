@@ -18,7 +18,9 @@
 
 static char param_string[ 145 ];
 
-#define MODPATH "../udmabuf/udmabuf.ko"
+#ifndef MODPATH
+#error "MODPATH must be defined!"
+#endif
 
 static char command_str[ 170 ] = "insmod " MODPATH;
 

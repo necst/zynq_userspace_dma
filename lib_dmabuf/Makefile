@@ -3,8 +3,9 @@ headers = $(wildcard *.h)
 
 dma_sources = $(wildcard dma*.c)
 dma_objects = $(patsubst %.c,%.o,$(dma_sources))
+modpath := $(shell cd $(CURDIR)/../udmabuf/ && pwd)
 
-CFLAGS += -Wall -Wextra -pedantic -std=gnu99
+CFLAGS += -Wall -Wextra -pedantic -std=c99 -D MODPATH=\"$(modpath)\" 
 LDFLAGS =
 
 dma_name = dmabuf
@@ -35,7 +36,7 @@ clean:
 	@rm -rf *.o 2> /dev/null
 
 distclean: clean
-	@rm -rf $(test_targets) $(dma_static_lib) $(dma_dynamic_lib) 2> /dev/null
+	@rm -rf $(dma_static_lib) $(dma_dynamic_lib) 2> /dev/null
 
 docs:
 	doxygen Doxyfile

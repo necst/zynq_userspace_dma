@@ -3,13 +3,12 @@ lib_dmabuf_dir := ../../lib_dmabuf
 headers = $(wildcard *.h)
 
 test_sources = $(wildcard test_*.c)
-# test_objects = $(patsubst %.c,%.o,$(test_sources))
 test_targets = $(patsubst %.c,%,$(test_sources))
 
 utils_sources = $(wildcard utils*.c)
 utils_objects = $(patsubst %.c,%.o,$(utils_sources))
 
-CFLAGS += -Wall -Wextra -pedantic -std=gnu99 -I $(lib_dmabuf_dir)
+CFLAGS += -Wall -Wextra -pedantic -std=c99 -I $(lib_dmabuf_dir)
 LDFLAGS =
 
 dma_name = dmabuf

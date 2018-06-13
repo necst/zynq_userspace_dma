@@ -107,6 +107,10 @@ cd host_src
 
 [comment]: # (## Detailed Description of ZU_DMA)
 
+[comment]: # (### Misc requirements)
+
+[comment]: # (C99 for __func__, C library with _POSIX_C_SOURCE >= 199309L compliance)
+
 [comment]: # (Add additional notes about how to deploy this on a live system)
 
 [comment]: # (## Contributing)

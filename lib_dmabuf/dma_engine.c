@@ -6,11 +6,13 @@
  * for custom kernels.
  */
 
+#define _POSIX_C_SOURCE 199309L
 #include <sys/stat.h> 
 #include <fcntl.h>
 #include <sys/mman.h>
-#include <stdio.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <time.h>
 #include <stdlib.h>
 
 #include "dma_engine_buf.h"
@@ -123,7 +125,15 @@ void destroy_dma_interfaces(unsigned num_dma, struct dma_engine *engines)
     }
 }
 
-static void check_transfer_alignment(phys_addr_t addr)
+#ifndef __unused__
+#if defined(__GNUC__)
+#define __unused__ __attribute__((unused))
+#else
+#define __unused__
+#endif
+#endif
+
+static void check_transfer_alignment( __unused__ phys_addr_t addr)
 {
 #ifdef CHECK_ALIGN
     if (addr % DEF_ALIGN != 0) {
@@ -218,6 +228,14 @@ static inline int engine_is_halted(volatile uint32_t *regs)
     return BIT(*regs, 1) == 1;
 }
 
+static void usleep_nano(unsigned utime)
+{
+	struct timespec __time;
+	__time.tv_sec = utime % 1000000;
+	__time.tv_nsec = utime * 1000;
+	nanosleep(&__time, NULL);
+}
+
 static enum dma_err_status wait_simple_transfer_common(volatile uint32_t *regs,
     struct dma_transaction *trans, unsigned usleep_timeout)
 {
@@ -228,7 +246,7 @@ static enum dma_err_status wait_simple_transfer_common(volatile uint32_t *regs,
     while( !engine_is_idle(regs)
         /* || !engine_is_halted(regs) */ ) {
         if (usleep_timeout != 0) {
-            usleep((useconds_t)usleep_timeout);
+            usleep_nano(usleep_timeout);
         }
     }
     trans->status = PROGRAMMED;
@@ -379,7 +397,7 @@ void wait_kernel(struct control_interface *ctrl_intf, unsigned usleep_timeout)
     {
         if (usleep_timeout != 0)
         {
-            usleep((useconds_t)usleep_timeout);
+            usleep_nano(usleep_timeout);
         }
     }
 }

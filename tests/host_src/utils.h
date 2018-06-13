@@ -11,10 +11,17 @@
 
 #include "dma_engine_buf.h"
 
+/*
+ * shutd up GCC from complaining about unused
+ * function arguments (like argc and argv)
+ */
+
+#ifndef __unused__
 #if defined(__GNUC__)
 #define __unused__ __attribute__((unused))
 #else
 #define __unused__
+#endif
 #endif
 
 #ifdef __cplusplus
