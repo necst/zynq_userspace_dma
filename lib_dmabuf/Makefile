@@ -52,3 +52,6 @@ clean:
 distclean: clean
 	@rm -rf $(test_targets) $(dma_static_lib) $(dma_dynamic_lib) 2> /dev/null
 
+docs:
+	doxygen Doxyfile
+
