@@ -2,9 +2,14 @@
 #ifndef XHW_INTERNALS_H_
 #define XHW_INTERNALS_H_
 
-/*
- * from https://www.xilinx.com/support/documentation/ip_documentation/axi_dma/v7_1/pg021_axi_dma.pdf
- * pag 12
+/**
+ * @file xhw_internals.h
+ * @author Alberto Scolari
+ * @brief Header for hardware related data structures, describing register space layout
+ * of Xilinx DMA and control interfaces.
+ *
+ * Hardware layout information comes with simple macros to work with bitfields, Vivado basic defaults
+ * and memory ordering utilities.
  */
 
 #ifdef __cplusplus
@@ -41,7 +46,11 @@ extern "C" {
 /*
  * --------- AXI DMA --------- 
  */
-
+/**
+ * @brief The axi_direct_dma_regs struct describes the physical layout of Xilinx AXI DMA registers
+ * for Direct Mode, as from https://www.xilinx.com/support/documentation/ip_documentation/axi_dma/v7_1/pg021_axi_dma.pdf
+ * page 12
+ */
 struct axi_direct_dma_regs {
     uint32_t mm2s_control;
     uint32_t mm2s_status;
@@ -69,6 +78,11 @@ struct axi_direct_dma_regs {
  * --------- AXI CONTROL --------- 
  */
 
+/**
+ * @brief The axi_control_base_regs struct describes the physical layout of the control AXI interface,
+ * with only the basic registers to contorl computation start and status and the interrupt logic.
+ * Kernel parameter registers are accessible immediately after these registers.
+ */
 struct axi_control_base_regs {
     uint32_t control;
     uint32_t global_int;
@@ -86,4 +100,3 @@ struct axi_control_base_regs {
 #endif
 
 #endif /* XHW_INTERNALS_H_ */
-

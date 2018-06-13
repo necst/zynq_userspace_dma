@@ -1,3 +1,10 @@
+
+/**
+ * @file dma_buf.c
+ * @author Alberto Scolari
+ * @brief Implementation of utilities to retrieve and destroy UDMA buffers.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,6 +22,8 @@ static char param_string[ 145 ];
 
 static char command_str[ 170 ] = "insmod " MODPATH;
 
+static char rmmod_cmd[] = "sudo rmmod udmabuf";
+
 static int run_command(const char *cmd)
 {
     return system(cmd);
@@ -27,7 +36,7 @@ static void insert_module(unsigned int num, const unsigned long *sizes)
     int retval = run_command("lsmod | grep udmabuf");
     if (retval == 0)
     {
-        retval = run_command("sudo rmmod udmabuf");
+        retval = run_command(rmmod_cmd);
         if (retval != 0)
         {
             printf("cannot unload the module\n");
@@ -91,7 +100,6 @@ static void read_buf_data(unsigned int num, unsigned long size, struct udmabuf *
     fprintf(file, "0");
     fclose(file);
 
-
     /*
      * mmap buffer
      */
@@ -118,10 +126,10 @@ static void read_buf_data(unsigned int num, unsigned long size, struct udmabuf *
 int load_udma_buffers(unsigned int num, const unsigned long *sizes, struct udmabuf *buffers)
 {
     unsigned int i;
-	if (num == 0)
-	{
-		return 0;
-	}
+    if (num == 0)
+    {
+            return 0;
+    }
     insert_module(num, sizes);
     for( i = 0; i < num; i++)
     {
@@ -135,8 +143,10 @@ void unload_udma_buffers(unsigned int num, struct udmabuf *buffers)
     unsigned int i;
     for(i = 0; i < num; i++)
     {
+        if (buffers[i].fd < 0) continue;
         munmap(buffers[i].vaddr, buffers[i].size);
         close(buffers[i].fd);
     }
+    run_command(rmmod_cmd);
 }
 

@@ -13,14 +13,14 @@
 
 int main(int argc, char **argv)
 {
-	unsigned long sizes[NUM_BUFFERS] = { BUFSIZE, BUFSIZE };
-	struct udmabuf buffers[NUM_BUFFERS];
+    unsigned long sizes[NUM_BUFFERS] = { BUFSIZE, BUFSIZE };
+    struct udmabuf buffers[NUM_BUFFERS];
     struct dma_engine engine;
     unsigned int i, err = 0;
     int *b1, *b2;
     enum dma_err_status err_retval;
 
-	load_udma_buffers( NUM_BUFFERS, sizes, buffers);
+    load_udma_buffers( NUM_BUFFERS, sizes, buffers);
 
     printf("DMA buffers created\n");
 
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 
     destroy_dma_interfaces(1, &engine);
 
-	unload_udma_buffers( NUM_BUFFERS, buffers);
+    unload_udma_buffers( NUM_BUFFERS, buffers);
 
-	return err;
+    return err;
 }

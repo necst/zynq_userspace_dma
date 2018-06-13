@@ -1,3 +1,10 @@
+
+/**
+ * @file utils.c
+ * @author Alberto Scolari
+ * @brief Implementation of debugging utilities.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -83,7 +90,6 @@ void print_buffer_status(int buf_id, struct udmabuf *buf)
         buf_id, (unsigned long)buf->paddr, buf->vaddr, buf->size);
 }
 
-
 void print_kernel_status(struct control_interface *ctrl_intf)
 {
     volatile struct axi_control_base_regs *regs = 
@@ -92,4 +98,3 @@ void print_kernel_status(struct control_interface *ctrl_intf)
         "IP interrupt %x\n\tIP interrupt status %x\n",
         regs->control, regs->global_int, regs->ip_int, regs->ip_int_status);
 }
-

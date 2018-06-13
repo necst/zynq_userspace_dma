@@ -1,4 +1,11 @@
 
+/**
+ * @file utils.h
+ * @author Alberto Scolari
+ * @brief Header with various utilities to debug UDMA buffers, DMA interfaces
+ * and AXI control logic.
+ */
+
 #ifndef DMA_UTILS_H_
 #define DMA_UTILS_H_
 

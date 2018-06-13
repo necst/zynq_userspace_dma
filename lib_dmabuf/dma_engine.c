@@ -1,3 +1,11 @@
+
+/**
+ * @file dma_engine.c
+ * @author Alberto Scolari
+ * @brief Implementation of utilities to work with DMa interfaces and AXI control interfaces
+ * for custom kernels.
+ */
+
 #include <sys/stat.h> 
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -241,7 +249,7 @@ enum dma_err_status wait_simple_transfer_from_device(struct dma_engine *engine, 
         &engine->from_dev, usleep_timeout);
 }
 
-unsigned err_status_common(volatile uint32_t *regs)
+static unsigned err_status_common(volatile uint32_t *regs)
 {
     uint32_t value = *regs;
     SET_BITFIELD(value, 0, 3, 0);

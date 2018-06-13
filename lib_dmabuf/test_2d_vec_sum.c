@@ -16,8 +16,8 @@
 
 int main(int argc, char **argv)
 {
-	unsigned long sizes[NUM_BUFFERS] = { BUFSIZE, BUFSIZE, BUFSIZE };
-	struct udmabuf buffers[NUM_BUFFERS];
+    unsigned long sizes[NUM_BUFFERS] = { BUFSIZE, BUFSIZE, BUFSIZE };
+    struct udmabuf buffers[NUM_BUFFERS];
 
     phys_addr_t dmas[] = {0x40400000, 0x40410000};
     unsigned dma_lengths[] = {AXI_CONTROL_REGS_LEN_DEF, AXI_CONTROL_REGS_LEN_DEF};
@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     int *in1, *in2, *out;
     enum dma_err_status err_retval;
 
-	load_udma_buffers( NUM_BUFFERS, sizes, buffers);
+    load_udma_buffers( NUM_BUFFERS, sizes, buffers);
 
     printf("DMA buffers created\n");
 
@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 
     destroy_dma_interfaces(2, engine);
 
-	unload_udma_buffers( NUM_BUFFERS, buffers);
+    unload_udma_buffers( NUM_BUFFERS, buffers);
 
-	return err;
+    return err;
 }
