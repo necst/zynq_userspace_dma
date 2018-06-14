@@ -118,6 +118,7 @@ cd host_src
 * **Alberto Scolari** - *Initial work*
 
 More authors are welcome!
+
 [comment]: # (See also the list of contributors https://github.com/your/project/contributors who participated in this project.)
 
 ## License
