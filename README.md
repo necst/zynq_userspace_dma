@@ -111,14 +111,14 @@ cd host_src
 
 [comment]: # (## Contributing)
 
-[comment]: # (Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.)
+[comment]: # (Please read CONTRIBUTING.md https://gist.github.com/PurpleBooth/b24679402957c63ec426 for details on our code of conduct, and the process for submitting pull requests to us.)
 
 ## Authors
 
 * **Alberto Scolari** - *Initial work*
 
 More authors are welcome!
-[comment]: # (See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.)
+[comment]: # (See also the list of contributors https://github.com/your/project/contributors who participated in this project.)
 
 ## License
 
