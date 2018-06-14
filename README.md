@@ -28,12 +28,6 @@ or the dynamic library (libdmabuf.so)
 make dynamic
 ```
 
-or the tests
-
-```bash
-make tests
-```
-
 ### Prerequisites and assumptions
 
 We developed and tested ZU_DMA in the following environment:
@@ -49,8 +43,16 @@ _**NOTE**: ZU_DMA makes little assumptions on the underlying hardware and softwa
 
 ### Running the tests
 
-ZU_DMA comes with pre-defined tests for the PYNQ platform to check that things work out correctly. Two examples are shown in the following.
-More details over tests are available in [tests details](tests/TESTS.md).
+ZU_DMA comes with pre-defined tests for the PYNQ platform to check that things work out correctly.
+If you want to build all tests at once, then run
+
+```bash
+cd tests/host_src
+make
+```
+
+---
+Two examples of how to run single tests are shown in the following.  More details are available in [tests details](tests/TESTS.md).
 
 ##### DMA Passthrough
 The DMA Passthrough test consists in a simple AXI Data FIFO connected to a single DMA, which just returns the data it receives. To run the passthrough test, first build it
@@ -58,12 +60,12 @@ The DMA Passthrough test consists in a simple AXI Data FIFO connected to a singl
 ```bash
 cd tests/host_src
 make test_passthrough
-cd ..
 ```
 
 then flash the bitstream (the provided bitstreams are for PYNQ platform only!); here, we use the `/dev/xdevcfg` device to flash, which needs root permission
 
 ```bash
+cd ..
 sudo su
 cat pynq_test_bitstreams/pynq_test_passthrough.bit > /dev/xdevcfg
 ```
@@ -77,23 +79,23 @@ cd host_src
 
 ##### 2D Vector Sum
 The 2D Vector Sum test consists in a custom HLS kernel that takes in input:
-* 2 integer vectors `V1` and `V2` (as DMA streams) of equal length
+* 2 integer vectors `V1` and `V2` (as separate DMA streams) of equal length
 * the number of elements inside a vector
 * three constants `a`, `b` and `c`
 
 and returns the vector sum `V3 = a * V1 + b + V2 + c` as output DMA stream.
 
-This kernel has a custom AXI control interface to control its running status and to pass inputs, which is also controlled via host software. The steps to run it are similar to the previous test: first build it
+This kernel has two DMA IPs and a custom AXI control interface to control its running status and to pass inputs, which is also controlled via host software. The steps to run it are similar to the previous test: first build it
 
 ```bash
 cd tests/host_src
 make test_2d_vec_sum
-cd ..
 ```
 
-then flash the bistream
+then flash the bitstream
 
 ```bash
+cd ..
 sudo su
 cat pynq_test_bitstreams/pynq_test_2d_vec_sum.bit > /dev/xdevcfg
 ```
