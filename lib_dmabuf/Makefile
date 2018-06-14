@@ -21,7 +21,7 @@ dma_dynamic_lib = lib$(dma_name).so
 utils_name = utils
 utils_lib = lib$(utils_name).a
 
-.PHONY: clean all static dynamic
+.PHONY: clean all static dynamic tests
 
 all: static
 
@@ -45,6 +45,8 @@ $(utils_lib): $(utils_objects)
 
 test_%: test_%.o $(dma_static_lib) $(utils_lib)
 	$(CC) -static $< -L. -l$(dma_name) -l$(utils_name) -o $@
+
+tests: $(test_targets)
 
 clean:
 	@rm -rf *.o 2> /dev/null
