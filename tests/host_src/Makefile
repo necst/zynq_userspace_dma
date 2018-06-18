@@ -32,7 +32,7 @@ $(utils_lib): $(utils_objects)
 	$(AR) rcs $@ $^
 
 test_%: test_%.o $(utils_lib) static_lib
-	$(CC) -static $< -L$(lib_dmabuf_dir) -L. -l$(dma_name) -l$(utils_name) -o $@
+	$(CC) $< -L$(lib_dmabuf_dir) -L. -l$(dma_name) -l$(utils_name) -o $@
 
 tests_all: $(test_targets)
 
