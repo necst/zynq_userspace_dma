@@ -4,4 +4,5 @@ This kernel just sends back the data it receives through an AXI Data FIFO IP con
 
 The block diagram is
 
-![bd](block_Design.png)
+![bd](block_design.png)
+

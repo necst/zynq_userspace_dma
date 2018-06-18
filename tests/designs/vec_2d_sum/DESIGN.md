@@ -13,4 +13,5 @@ Note that the host code provided in this test assumes the scalar input offsets a
 
 The block diagram is
 
-![bd](block_Design.png)
+![bd](block_design.png)
+
