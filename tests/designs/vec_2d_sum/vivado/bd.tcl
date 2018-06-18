@@ -1,6 +1,6 @@
 
 ################################################################
-# This is a generated script based on design: dma_1
+# This is a generated script based on design: vec_2d_sum
 #
 # Though there are limitations about the generated script,
 # the main purpose of this utility is to make learning
@@ -43,13 +43,26 @@ if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
 
 set list_projs [get_projects -quiet]
 if { $list_projs eq "" } {
-   create_project project_1 myproj -part xc7z020clg400-1
+   create_project project_1 pynq_vec_2d_sum -part xc7z020clg400-1
    set_property BOARD_PART www.digilentinc.com:pynq-z1:part0:1.0 [current_project]
 }
 
 
+
+
+
+set curdir [ file dirname [ file normalize [ info script ] ] ]
+set repo_dir [ file dirname $curdir ]
+append repo_dir "/hls/pynq_vec_2d_sum/solution1"
+
+
+set_property  ip_repo_paths $repo_dir [current_project]
+update_ip_catalog
+
+
+
 # CHANGE DESIGN NAME HERE
-set design_name dma_1
+set design_name vec_2d_sum
 
 # If you do not already have an existing IP Integrator design open,
 # you can create a design using the following command:
@@ -115,6 +128,7 @@ if { $nRet != 0 } {
    catch {common::send_msg_id "BD_TCL-114" "ERROR" $errMsg}
    return $nRet
 }
+
 
 ##################################################################
 # DESIGN PROCs
@@ -969,7 +983,7 @@ CONFIG.NUM_MI {3} \
   set rst_ps7_0_50M [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 rst_ps7_0_50M ]
 
   # Create instance: top_1, and set properties
-  set top_1 [ create_bd_cell -type ip -vlnv xilinx.com:hls:top:1.0 top_1 ]
+  set top_1 [ create_bd_cell -type ip -vlnv xilinx.com:hls:top_vec_2d_sum:1.0 top_1 ]
 
   # Create interface connections
   connect_bd_intf_net -intf_net axi_dma_0_M_AXIS_MM2S [get_bd_intf_pins axi_dma_0/M_AXIS_MM2S] [get_bd_intf_pins top_1/inStream1]
@@ -1014,5 +1028,18 @@ CONFIG.NUM_MI {3} \
 ##################################################################
 
 create_root_design ""
+
+make_wrapper -files [get_files ./pynq_vec_2d_sum/project_1.srcs/sources_1/bd/vec_2d_sum/vec_2d_sum.bd] -top
+
+add_files -norecurse ./pynq_vec_2d_sum/project_1.srcs/sources_1/bd/vec_2d_sum/hdl/vec_2d_sum_wrapper.v
+
+set_property top pynq_vec_2d_sum_wrapper [current_fileset]
+
+
+reset_run synth_1
+launch_runs impl_1 -to_step write_bitstream -jobs 10
+wait_on_run impl_1
+
+
 
 

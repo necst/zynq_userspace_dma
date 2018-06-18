@@ -1,6 +1,6 @@
 
 ################################################################
-# This is a generated script based on design: pynq_dma_passthrough
+# This is a generated script based on design: pynq_passthrough
 #
 # Though there are limitations about the generated script,
 # the main purpose of this utility is to make learning
@@ -35,21 +35,21 @@ if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
 ################################################################
 
 # To test this script, run the following commands from Vivado Tcl console:
-# source pynq_dma_passthrough_script.tcl
+# source pynq_passthrough_script.tcl
 
 # If there is no project opened, this script will create a
 # project, but make sure you do not have an existing project
-# <./pynq_dma_passthrough/project_1.xpr> in the current working folder.
+# <./pynq_passthrough/project_1.xpr> in the current working folder.
 
 set list_projs [get_projects -quiet]
 if { $list_projs eq "" } {
-   create_project project_1 pynq_dma_passthrough -part xc7z020clg400-1
+   create_project project_1 pynq_passthrough -part xc7z020clg400-1
    set_property BOARD_PART www.digilentinc.com:pynq-z1:part0:1.0 [current_project]
 }
 
 
 # CHANGE DESIGN NAME HERE
-set design_name pynq_dma_passthrough
+set design_name passthrough
 
 # If you do not already have an existing IP Integrator design open,
 # you can create a design using the following command:
@@ -994,14 +994,11 @@ CONFIG.NUM_MI {1} \
 
 create_root_design ""
 
-puts "STOCAZZO0"
-make_wrapper -files [get_files ./pynq_dma_passthrough/project_1.srcs/sources_1/bd/pynq_dma_passthrough/pynq_dma_passthrough.bd] -top
+make_wrapper -files [get_files ./pynq_passthrough/project_1.srcs/sources_1/bd/passthrough/passthrough.bd] -top
 
-puts "STOCAZZO1"
-add_files -norecurse ./pynq_dma_passthrough/project_1.srcs/sources_1/bd/pynq_dma_passthrough/hdl/pynq_dma_passthrough_wrapper.v
+add_files -norecurse ./pynq_passthrough/project_1.srcs/sources_1/bd/passthrough/hdl/passthrough_wrapper.v
 
-puts "STOCAZZO2"
-set_property top pynq_dma_passthrough_wrapper [current_fileset]
+set_property top passthrough_wrapper [current_fileset]
 
 
 reset_run synth_1
