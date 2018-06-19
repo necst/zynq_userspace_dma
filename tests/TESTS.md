@@ -1,9 +1,9 @@
 ## ZU_DMA tests
 
 ZU_DMA features several tests to try out data transmission patterns to/from FPGA and explore how the software (host) side and the hardware side should be designed. The following folders contain the relevant data:
-* pynq_test_bitstreams contains pre-built bitstreams for the vailable designs for the PYNQ platform); these bitstreams can be flashed to the FPGA (e.g. via the `/dev/xdevcfg` device ) and checked
-* host_src contains the host-side code with one test per bitstream; tests send data to the FPGA logic, retrieve the result and check the result to be correct
-* designs contains the High Level Synthesis and Block Diagram design of each project, as well as scripts to synthesize it for PYNQ
+* [pynq_test_bitstreams](./pynq_test_bitstreams) contains pre-built bitstreams of the available designs (for PYNQ); these bitstreams can be flashed to the FPGA (e.g. via the `/dev/xdevcfg` device ) and tested
+* [host_src](./is host_src) contains the host-side code with one test per bitstream; tests send data to the FPGA logic, retrieve the result and check the result to be correct
+* [designs](./designs) contains the High Level Synthesis and Block Diagram design of each project, as well as scripts to synthesize it for PYNQ
 
 ### Flash the bitstreams
 
