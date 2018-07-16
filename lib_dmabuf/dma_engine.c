@@ -220,12 +220,12 @@ enum dma_err_status start_simple_transfer_from_device(struct dma_engine *engine)
 
 static inline int engine_is_idle(volatile uint32_t *regs)
 {
-    return BIT(*regs, 0) == 1;
+    return BIT(*(regs + 1), 1) == 1;
 }
 
 static inline int engine_is_halted(volatile uint32_t *regs)
 {
-    return BIT(*regs, 1) == 1;
+    return BIT(*(regs + 1), 0) == 1;
 }
 
 static void usleep_nano(unsigned utime)
