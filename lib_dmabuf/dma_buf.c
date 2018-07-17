@@ -22,9 +22,11 @@ static char param_string[ 145 ];
 #error "MODPATH must be defined!"
 #endif
 
-static char command_str[ 170 ] = "insmod " MODPATH;
+#define MODNAME "udmabuf"
 
-static char rmmod_cmd[] = "sudo rmmod udmabuf";
+static char command_str[ 170 ] = "insmod " MODPATH "/" MODNAME ".ko";
+
+static char rmmod_cmd[] = "sudo rmmod " MODNAME;
 
 static int run_command(const char *cmd)
 {
@@ -35,7 +37,7 @@ static void insert_module(unsigned int num, const unsigned long *sizes)
 {
     unsigned int i;
     char *buf = param_string;
-    int retval = run_command("lsmod | grep udmabuf");
+    int retval = run_command("lsmod | grep " MODNAME);
     if (retval == 0)
     {
         retval = run_command(rmmod_cmd);
@@ -62,8 +64,8 @@ static void insert_module(unsigned int num, const unsigned long *sizes)
     }
 }
 
-#define BUFPATH "/dev/udmabuf"
-#define PHYSPATH "/sys/class/udmabuf/udmabuf"
+#define BUFPATH "/dev/" MODNAME
+#define PHYSPATH "/sys/class/" MODNAME "/" MODNAME
 #define PHYSNAME "/phys_addr"
 #define SYNCMODE "/sync_mode"
 #define SYNCDIR "/sync_direction"
