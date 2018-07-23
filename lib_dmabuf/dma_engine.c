@@ -59,23 +59,25 @@ static void xdma_engine_init(struct dma_engine *engine)
 int get_dma_interfaces(unsigned num_dma, phys_addr_t *offsets,
     unsigned *lengths, struct dma_engine *engines)
 {
-	char *result;
-	int fd;
+    char *result;
+    int fd;
     unsigned i;
 
+    /*
     if (offsets == NULL)
     {
         printf("function %s requires offsets to be given\n", __func__);
         exit(-1);
     }
+    */
 
-	fd = open(LINUX_MEM_DEV, O_RDWR | O_SYNC);
-	if (fd == -1)
-	{
-		printf("%s: impossible to open %s\n", __func__, LINUX_MEM_DEV);
-		return -1;
-	}
-    
+    fd = open(LINUX_MEM_DEV, O_RDWR | O_SYNC);
+    if (fd == -1)
+    {
+        printf("%s: impossible to open %s\n", __func__, LINUX_MEM_DEV);
+        return -1;
+    }
+
     for(i = 0; i < num_dma; i++) {
         unsigned __offset, __length;
         if (offsets == NULL)
@@ -94,17 +96,17 @@ int get_dma_interfaces(unsigned num_dma, phys_addr_t *offsets,
         }
         engines[i].fd = fd;
         engines[i].regs_vaddr = result = mmap(NULL, __length,
-    	    PROT_READ | PROT_WRITE, MAP_SHARED, fd, __offset);
+            PROT_READ | PROT_WRITE, MAP_SHARED, fd, __offset);
         engines[i].length = __length;
         if ( result == NULL )
         {
             unsigned j;
-    	    printf("%s: impossible to mmap %s\n", __func__, LINUX_MEM_DEV);
+            printf("%s: impossible to mmap %s\n", __func__, LINUX_MEM_DEV);
             for( j = 0; j < i; j++) {
                 munmap((void*)engines[j].regs_vaddr, DESCRIPTOR_REGISTERS_SIZE);
             }
-    	    close(fd);
-    	    return -1;
+            close(fd);
+            return -1;
         }
         xdma_engine_init(engines + i);
     }
