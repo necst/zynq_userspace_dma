@@ -2,12 +2,12 @@
 
 ZU_DMA features several tests to try out data transmission patterns to/from FPGA and explore how the software (host) side and the hardware side should be designed. The following folders contain the relevant data:
 * [pynq_test_bitstreams](./pynq_test_bitstreams) contains pre-built bitstreams of the available designs (for PYNQ); these bitstreams can be flashed to the FPGA (e.g. via the `/dev/xdevcfg` device ) and tested
-* [host_src](./host_src) contains the host-side code with one test per bitstream; tests send data to the FPGA logic, retrieve the result and check the result to be correct
+* [host_src](./host_src) contains the host-side code with one test per bitstream; tests send data to the FPGA logic, retrieve the result and check it to be correct
 * [designs](./designs) contains the High Level Synthesis and Block Diagram design of each project, as well as scripts to synthesize it for PYNQ
 
 ### Flash the bitstreams
 
-To flash the bistream of a test, the suggested procedure uses the `/dev/xdevcfg` device; therefore, should flash it with sudo permission
+To flash the bistream of a test, the suggested procedure uses the `/dev/xdevcfg` device; therefore, you should flash it with sudo permission
 ```bash
 sudo su
 cat bitstreams/<test name>.bit > /dev/xdevcfg
@@ -53,7 +53,7 @@ The [design](./design) folder contains the designs with script to build them. Ea
 * the vivado folder with the script to build and synthesize the bitstream
 
 To build the bitstream yourself, the script synth.sh can be used, which invokes the Vivado tools and the TCL script in each directory.
-__NOTE__: the TCL script used were built and tested under __Vivado (HLS) 2017.2__; they check the version they run in, so they might file in case of mismatch. It should be easy to modify them to use another version of Vivado.
+__NOTE__: the TCL script used were built and tested under __Vivado (HLS) 2017.2__; they check the version they run in, so they might fail in case of mismatch. It should be easy to modify them to work with another version of Vivado.
 To build the test *`<test name>`*, you need to source the Vivado tools and invoke the [synth.sh](./designs/synth.sh) script like
 ```bash
 source <path/to/Vivado/installation>
