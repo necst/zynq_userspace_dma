@@ -43,3 +43,5 @@ docs:
 test: static
 	gcc test_dc.c libspibuf.a -o exefile
 
+test_nonbenissimo: static
+    gcc test_dc.c ./libspibuf.a ./utils.o -I ../tests/host_src/ -I ../lib_dmabuf/ ../lib_dmabuf/libdmabuf.a -o exefile

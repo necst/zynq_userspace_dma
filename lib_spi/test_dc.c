@@ -4,9 +4,9 @@
 
 #include "xspi.h"
 #include <stdio.h>
-#include <utils.h>
+#include "utils.h"
 #include "dma_engine_buf.h"
-#include "xhw_internals.h"
+//#include "xhw_internals.h"
 
 
 #define CONFIG_WRITE_BYTES 17
