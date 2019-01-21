@@ -543,4 +543,5 @@ extern void XSpi_IntrClear(XSpi *InstancePtr, u32 ClearMask);
 extern int XSpi_Transfer(XSpi *InstancePtr, u8 *SendBufPtr,
                   u8 *RecvBufPtr, unsigned int ByteCount);
 extern void clean(XSpi *InstancePtr);
+extern void checkFunction(XSpi * InstancePtr);
 #endif

@@ -181,7 +181,9 @@ int main(int argc, char *argv[]){
     XSpi Spi_Instance;
     int status = 0;
 
+    printf("Test SPI program \n");
     spi_config = XSpi_LookupConfig(XPAR_AXI_QUAD_SPI_0_DEVICE_ID);
+    printf("Configuration Looked Up \n");
 
     status = XSpi_CfgInitialize(&Spi_Instance, spi_config, spi_config->BaseAddress);
     if(status != XST_SUCCESS)

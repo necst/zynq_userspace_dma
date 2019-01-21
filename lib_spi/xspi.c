@@ -252,12 +252,12 @@ XSpi_Config *XSpi_LookupConfig(u16 DeviceId)
 }
 
 static u32 init_memory(XSpi *InstancePtr){
-    InstancePtr -> vAddr_length = XPAR_SPI_0_AXI4_HIGHADDR - XPAR_SPI_0_AXI4_BASEADDR + 1;
+    InstancePtr -> vAddr_length = XPAR_SPI_0_HIGHADDR - XPAR_SPI_0_BASEADDR + 1;
 
     int fd;
     if((fd = open(LINUX_MEM_DEV, O_RDWR | O_SYNC))){
         InstancePtr -> vAddr = (UINTPTR)mmap(NULL, InstancePtr -> vAddr_length,
-                PROT_READ | PROT_WRITE, MAP_SHARED, fd, XPAR_SPI_0_AXI4_BASEADDR);
+                PROT_READ | PROT_WRITE, MAP_SHARED, fd, XPAR_SPI_0_BASEADDR);
         InstancePtr -> fd = fd;
         if(InstancePtr -> vAddr == (UINTPTR)NULL){
             printf("ERROR while performing mmap");
@@ -1231,5 +1231,8 @@ int XSpi_Transfer(XSpi *InstancePtr, u8 *SendBufPtr,
     return XST_SUCCESS;
 }
 
-
-
+void checkFunction(XSpi * InstancePtr){
+    u32 retVal = XSpi_ReadReg(InstancePtr ->vAddr, 0x64);
+    printf("RETVAL %x \n", retVal);
+    fflush(stdout);
+}
