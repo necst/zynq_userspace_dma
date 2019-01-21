@@ -2,6 +2,8 @@
 #include "xparameters.h"
 #include <string.h>
 
+#ifndef XSPI_H
+#define XSPI_H
 
 typedef uintptr_t UINTPTR;
 typedef uint16_t u16;
@@ -228,22 +230,7 @@ typedef struct {
 
 XSpi_Config *XSpi_LookupConfig(u16 DeviceId);
 
-XSpi_Config XSpi_ConfigTable[] =
-{
-        {
-                XPAR_SPI_0_DEVICE_ID,
-                XPAR_SPI_0_BASEADDR,
-                XPAR_SPI_0_FIFO_EXIST,
-                XPAR_SPI_0_SPI_SLAVE_ONLY,
-                XPAR_SPI_0_NUM_SS_BITS,
-                XPAR_SPI_0_NUM_TRANSFER_BITS,
-                XPAR_SPI_0_SPI_MODE,
-                XPAR_SPI_0_TYPE_OF_AXI4_INTERFACE,
-                XPAR_SPI_0_AXI4_BASEADDR,
-                XPAR_SPI_0_XIP_MODE,
-                XPAR_SPI_0_USE_STARTUP
-        }
-};
+
 
 /**
  * XSPI register offsets
@@ -517,205 +504,43 @@ static inline void Xil_Out32(UINTPTR Addr, u32 Value)
  * Basic function to read specific registers
  * todo
  */
-static inline u32 XSpi_ReadReg(UINTPTR VirtualAddress, u32 RegOffset){
-       return Xil_In32(VirtualAddress + RegOffset);
-}
+static inline u32 XSpi_ReadReg(UINTPTR VirtualAddress, u32 RegOffset);
 
 
-static inline u32 XSpi_GetControlReg(XSpi *InstancePtr){
-        return XSpi_ReadReg(InstancePtr->vAddr, XSP_CR_OFFSET);
-}
+static inline u32 XSpi_GetControlReg(XSpi *InstancePtr);
 
 //return here is
-static inline void XSpi_WriteReg(UINTPTR VirtualAddress, u32 RegOffset, u32 RegisterValue){
-        Xil_Out32(VirtualAddress + RegOffset, (RegisterValue));
-}
+static inline void XSpi_WriteReg(UINTPTR VirtualAddress, u32 RegOffset, u32 RegisterValue);
 
-static inline void XSpi_SetControlReg(XSpi *InstancePtr, u32 mask){
-        XSpi_WriteReg(InstancePtr->vAddr, XSP_CR_OFFSET, (mask));
-}
+static inline void XSpi_SetControlReg(XSpi *InstancePtr, u32 mask);
 
 
-/****************************************************************************/
-/**
-*
-* Set the contents of the slave select register. Each bit in the mask
-* corresponds to a slave select line. Only one slave should be selected at
-* any one time.
-*
-* @param	InstancePtr is a pointer to the XSpi instance to be worked on.
-* @param	Mask is the 32-bit value to write to the slave select register.
-*
-* @return	None.
-*
-* @note		C-Style signature:
-* 		void XSpi_SetSlaveSelectReg(XSpi *InstancePtr, u32 Mask);
-*
-*****************************************************************************/
-static inline void XSpi_SetSlaveSelectReg(XSpi *InstancePtr, u32 Mask) {
-        XSpi_WriteReg(((InstancePtr)->BaseAddr), XSP_SSR_OFFSET, (Mask));
-}
+static inline void XSpi_SetSlaveSelectReg(XSpi *InstancePtr, u32 Mask);
 
 int XSpi_CfgInitialize(XSpi *InstancePtr, XSpi_Config *Config,
                        UINTPTR EffectiveAddr);
 
 int XSpi_SetOptions(XSpi *InstancePtr, u32 Options);
 
-/******************************************************************************/
-/**
-*
-* This function sets the contents of the Interrupt Enable Register.
-*
-* @param	InstancePtr is a pointer to the XSpi instance to be worked on.
-* @param	EnableMask is the bitmask of the interrupts to be enabled.
-*		Bit positions of 1 will be enabled. Bit positions of 0 will
-*		keep the previous setting. This mask is formed by OR'ing
-*		XSP_INTR_* bits defined in xspi_l.h.
-*
-* @return 	None.
-*
-* @note		C-Style signature:
-*		void XSpi_IntrEnable(XSpi *InstancePtr, u32 EnableMask);
-*
-******************************************************************************/
-void XSpi_IntrEnable(XSpi *InstancePtr, u32 EnableMask){
-    XSpi_WriteReg(((InstancePtr)->BaseAddr), XSP_IIER_OFFSET,
-                  (XSpi_ReadReg(((InstancePtr)->BaseAddr),
-                                XSP_IIER_OFFSET)) | (((EnableMask) & XSP_INTR_ALL )));
-}
+extern void XSpi_IntrEnable(XSpi *InstancePtr, u32 EnableMask);
+extern void XSpi_IntrGlobalEnable(XSpi *InstancePtr);
 
 
-/******************************************************************************/
-/**
-*
-* This macro writes to the global interrupt enable register to enable
-* interrupts from the device.
-*
-* Interrupts enabled using XSpi_IntrEnable() will not occur until the global
-* interrupt enable bit is set by using this function.
-*
-* @param	InstancePtr is a pointer to the XSpi instance to be worked on.
-*
-* @return	None.
-*
-* @note		C-Style signature:
-*		void XSpi_IntrGlobalEnable(XSpi *InstancePtr);
-*
-******************************************************************************/
-void XSpi_IntrGlobalEnable(XSpi *InstancePtr){
-    XSpi_WriteReg(((InstancePtr)->BaseAddr),  XSP_DGIER_OFFSET,
-                  XSP_GINTR_ENABLE_MASK);
-}
 
 int XSpi_Start(XSpi *InstancePtr);
 
-/******************************************************************************/
-/**
-*
-* This macro disables all interrupts for the device by writing to the Global
-* interrupt enable register.
-*
-* @param	InstancePtr is a pointer to the XSpi instance to be worked on.
-*
-* @return	None.
-*
-* @note		C-Style signature:
-*		void XSpi_IntrGlobalDisable(XSpi *InstancePtr);
-*
-******************************************************************************/
-void XSpi_IntrGlobalDisable(XSpi *InstancePtr){
-    XSpi_WriteReg(((InstancePtr)->BaseAddr),  XSP_DGIER_OFFSET, 0);
-}
+extern void XSpi_IntrGlobalDisable(XSpi *InstancePtr);
 
-int XSpi_SetSlaveSelect(XSpi *InstancePtr, u32 SlaveMask);
+extern int XSpi_SetSlaveSelect(XSpi *InstancePtr, u32 SlaveMask);
 
-/*****************************************************************************/
-/**
-*
-* This function determines if interrupts are enabled at the global level by
-* reading the global interrupt register.
-*
-* @param	InstancePtr is a pointer to the XSpi instance to be worked on.
-*
-* @return
-*		- TRUE if global interrupts are enabled.
-*		- FALSE if global interrupts are disabled.
-*
-* @note		C-Style signature:
-*		int XSpi_IsIntrGlobalEnabled(XSpi *InstancePtr);
-*
-******************************************************************************/
-int XSpi_IsIntrGlobalEnabled(XSpi *InstancePtr){
-    return (XSpi_ReadReg(((InstancePtr)->BaseAddr), XSP_DGIER_OFFSET) == XSP_GINTR_ENABLE_MASK);
-}
+extern int XSpi_IsIntrGlobalEnabled(XSpi *InstancePtr);
 
-/***************************************************************************/
-/**
-*
-* Get the contents of the status register. Use the XSP_SR_* constants defined
-* above to interpret the bit-mask returned.
-*
-* @param	InstancePtr is a pointer to the XSpi instance to be worked on.
-*
-* @return	An 32-bit value representing the contents of the status
-*		register.
-*
-* @note		C-Style signature:
-* 		u8 XSpi_GetStatusReg(XSpi *InstancePtr);
-*
-*****************************************************************************/
-u32 XSpi_GetStatusReg(XSpi *InstancePtr) {
-    return XSpi_ReadReg(((InstancePtr)->BaseAddr), XSP_SR_OFFSET);
-}
+extern u32 XSpi_GetStatusReg(XSpi *InstancePtr);
 
-/*****************************************************************************/
-/**
-*
-* This function gets the contents of the Interrupt Status Register.
-* This register indicates the status of interrupt sources for the device.
-* The status is independent of whether interrupts are enabled such
-* that the status register may also be polled when interrupts are not enabled.
-*
-* @param	InstancePtr is a pointer to the XSpi instance to be worked on.
-*
-* @return	A status which contains the value read from the Interrupt
-*		Status Register.
-*
-* @note		C-Style signature:
-*		u32 XSpi_IntrGetStatus(XSpi *InstancePtr);
-*
-******************************************************************************/
-u32 XSpi_IntrGetStatus(XSpi *InstancePtr){
-    return XSpi_ReadReg(((InstancePtr)->BaseAddr), XSP_IISR_OFFSET);
-}
+extern u32 XSpi_IntrGetStatus(XSpi *InstancePtr);
 
-/*****************************************************************************/
-/**
-*
-* This function clears the specified interrupts in the Interrupt status
-* Register. The interrupt is cleared by writing to this register with the bits
-* to be cleared set to a one and all others bits to zero. Setting a bit which
-* is zero within this register causes an interrupt to be generated.
-*
-* This function writes only the specified value to the register such that
-* some status bits may be set and others cleared.  It is the caller's
-* responsibility to get the value of the register prior to setting the value
-* to prevent an destructive behavior.
-*
-* @param	InstancePtr is a pointer to the XSpi instance to be worked on.
-* @param	ClearMask is the Bitmask for interrupts to be cleared.
-*		Bit positions of "1" clears the interrupt. Bit positions of 0
-*		will keep the previous setting. This mask is formed by OR'ing
-*		XSP_INTR_* bits defined in xspi_l.h.
-*
-* @return	None.
-*
-* @note		C-Style signature:
-*		void XSpi_IntrClear(XSpi *InstancePtr, u32 ClearMask);
-*
-******************************************************************************/
-void XSpi_IntrClear(XSpi *InstancePtr, u32 ClearMask){
-    XSpi_WriteReg(((InstancePtr)->BaseAddr),  XSP_IISR_OFFSET, XSpi_IntrGetStatus(InstancePtr) | (ClearMask));
-}
-int XSpi_Transfer(XSpi *InstancePtr, u8 *SendBufPtr,
+extern void XSpi_IntrClear(XSpi *InstancePtr, u32 ClearMask);
+extern int XSpi_Transfer(XSpi *InstancePtr, u8 *SendBufPtr,
                   u8 *RecvBufPtr, unsigned int ByteCount);
+extern void clean(XSpi *InstancePtr);
+#endif

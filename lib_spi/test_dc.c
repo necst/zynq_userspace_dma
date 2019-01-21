@@ -182,6 +182,7 @@ int main(int argc, char *argv[]){
     int status = 0;
 
     spi_config = XSpi_LookupConfig(XPAR_AXI_QUAD_SPI_0_DEVICE_ID);
+
     status = XSpi_CfgInitialize(&Spi_Instance, spi_config, spi_config->BaseAddress);
     if(status != XST_SUCCESS)
     {
@@ -221,4 +222,6 @@ int main(int argc, char *argv[]){
 
     // Init measurement
     TdcGpx2InitStartMeas(&Spi_Instance);
+
+    clean(&Spi_Instance);
 }
