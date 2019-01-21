@@ -4,6 +4,10 @@
 
 #include "xspi.h"
 #include <stdio.h>
+#include <utils.h>
+#include "dma_engine_buf.h"
+#include "xhw_internals.h"
+
 
 #define CONFIG_WRITE_BYTES 17
 #define CONFIG_READ_BYTES 17
@@ -13,6 +17,9 @@
 #define STOP_BITS 20
 #define TEST_PATTERN 0 // SET 1 if using LVDS TEST PATTERN
 #define NUM_SAMPLES (2020000 * 2)
+#define NUM_BUFFERS 1
+#define BUFSIZE 100 * 8 // in BYTE
+
 
 u8 TdcGpx2PowerOnReset(XSpi *InstancePtr)
 {
@@ -181,6 +188,17 @@ int main(int argc, char *argv[]){
     XSpi Spi_Instance;
     int status = 0;
 
+    /****** DMA vars *********/
+    u64 buffer_out[100] = {0}; //todo change here
+    unsigned long sizes[NUM_BUFFERS] = {BUFSIZE};
+    struct udmabuf buffers[NUM_BUFFERS];
+    struct dma_engine engine;
+
+    enum dma_err_status err_retval;
+
+    load_udma_buffers(NUM_BUFFERS, sizes, buffers);
+    printf("DMA buffers created\n");
+
     printf("Test SPI program \n");
     spi_config = XSpi_LookupConfig(XPAR_AXI_QUAD_SPI_0_DEVICE_ID);
     printf("Configuration Looked Up \n");
@@ -225,5 +243,38 @@ int main(int argc, char *argv[]){
     // Init measurement
     TdcGpx2InitStartMeas(&Spi_Instance);
 
+
+    print_buffer_status(0, buffers);
+    get_dma_interfaces(1, NULL, NULL, &engine);
+    printf("DMA engine created\n");
+    long int * b1 = (int *)buffers->vaddr;
+    for(int i = 0; i < BUFSIZE / sizeof(long int); i++){
+        b1[i] = 0;
+    }
+
+    /*
+     * initiate DMA transaction from device
+     */
+    printf("\nstarting transfer from device...\n");
+    err_retval = set_simple_transfer_from_device(&engine, buffers , 0, BUFSIZE);
+    check_err(err_retval);
+    err_retval = start_simple_transfer_from_device(&engine);
+    check_err(err_retval);
+    printf("transfer from device started\n");
+
+    printf("\nwaiting for transfer from device...\n");
+    err_retval = wait_simple_transfer_from_device(&engine, 0);
+    check_err(err_retval);
+    print_engine(&engine);
+
+    //print results
+
+    for(int i = 0; i < BUFSIZE/sizeof(long int); i++){
+        printf("data read %lu \n", b1[i]);
+    }
+
+
+    destroy_dma_interfaces(1, &engine);
+    unload_udma_buffers(NUM_BUFFERS, buffers);
     clean(&Spi_Instance);
 }
