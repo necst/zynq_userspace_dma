@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include "utils.h"
 #include "dma_engine_buf.h"
+#include "ps7_init.h"
 //#include "xhw_internals.h"
 
 
@@ -18,7 +19,7 @@
 #define TEST_PATTERN 0 // SET 1 if using LVDS TEST PATTERN
 #define NUM_SAMPLES (2020000 * 2)
 #define NUM_BUFFERS 1
-#define BUFSIZE 100 * 8 // in BYTE
+#define BUFSIZE (100 * 8) // in BYTE
 
 
 u8 TdcGpx2PowerOnReset(XSpi *InstancePtr)
@@ -187,6 +188,8 @@ int main(int argc, char *argv[]){
     XSpi_Config *spi_config;
     XSpi Spi_Instance;
     int status = 0;
+
+    ps7_init();
 
     /****** DMA vars *********/
     u64 buffer_out[100] = {0}; //todo change here
