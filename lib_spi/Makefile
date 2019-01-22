@@ -41,7 +41,13 @@ distclean: clean
 docs:
 	doxygen Doxyfile
 test: static
-	gcc test_dc.c libspibuf.a -o exefile
+	gcc test_dc.c ps7_init.c libspibuf.a -o exefile
 
-test_nonbenissimo: static
-    gcc test_dc.c ./libspibuf.a ./utils.o -I ../tests/host_src/ -I ../lib_dmabuf/ ../lib_dmabuf/libdmabuf.a -o exefile
+test_2: static
+	gcc test_dc.c ./ps7_init.c ./libspibuf.a ./utils.o -I ../tests/host_src/ -I ../lib_dmabuf ../lib_dmabuf/libdmabuf.a -o exefile
+
+#test_nonbenissimo:  static
+#    gcc test_dc.c ./libspibuf.a ./utils.o -I ../tests/host_src/ -I ../lib_dmabuf/ ../lib_dmabuf/libdmabuf.a -o exefile
+
+#test_nonbenissimo: static
+#    gcc test_dc.c ./libspibuf.a ./utils.o -I ../tests/host_src/ -I ../lib_dmabuf/ ../lib_dmabuf/libdmabuf.a -o exefile

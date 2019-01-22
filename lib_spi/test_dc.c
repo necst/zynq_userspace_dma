@@ -190,6 +190,7 @@ int main(int argc, char *argv[]){
     int status = 0;
 
     ps7_init();
+    ps7_post_config();
 
     /****** DMA vars *********/
     u64 buffer_out[100] = {0}; //todo change here
